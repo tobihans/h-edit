@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QPlainTextEdit>
 #include <QLabel>
+//#include <QToolBar>
 #include <QTimer>
 #include <QTimerEvent>
 class Editor : public QMainWindow
@@ -32,6 +33,7 @@ private slots:
     void redo();
     void font();
     void hideStatusBar();
+    void hideToolBar();
     void autoSave();
     void toggleCheckbox(QAction *action);
 private:
@@ -40,6 +42,8 @@ private:
     QMenu *edit;
     QMenu *view;
     QMenu *preferences;
+
+    QToolBar *toolbar;
 
     // Actions
     QAction *AnewFile;
@@ -54,6 +58,7 @@ private:
     QAction *Aundo;
     QAction *Aredo;
     QAction *AhideStatusBar;
+    QAction *AhideToolBar;
     QAction *AautoSave;
     QAction *AsetFont;
 

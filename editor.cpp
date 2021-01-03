@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QMenu>
 #include <QMenuBar>
+#include <QToolBar>
 #include <QStatusBar>
 #include <QAction>
 #include <QPixmap>
@@ -31,8 +32,10 @@ Editor::Editor(QWidget *parent)
     connect(this, &Editor::checkboxToggled, this, &Editor::toggleCheckbox);
     editArea = new QPlainTextEdit;
     editArea->setFont(QFont("monospace"));
+    editArea->setStyleSheet("font-size: 20px");
     setCentralWidget(editArea);
     setWindowTitle("h-edit");
+    toolbar = addToolBar("Main Toolbar");
 
     // Menus
     menuBar()->setStyleSheet("color: #0f4851");
@@ -99,9 +102,11 @@ Editor::Editor(QWidget *parent)
     edit->addSeparator();
     edit->addAction(Aundo);
 
-    auto *redo = new QAction(QPixmap("icons/icons8-undo-64.png"), "Redo", this);
-    redo->setShortcut(tr("Ctrl+R"));
-    edit->addAction(redo);
+
+    Aredo = new QAction(QPixmap("icons/icons8-redo-64.png"), "Redo", this);
+    Aredo->setShortcut(tr("Ctrl+R"));
+    edit->addAction(Aredo);
+
 
     AhideStatusBar = new QAction(QPixmap("icons/icons8-unchecked-checkbox-64.png"),
         "Hide Status Bar", this);
@@ -110,6 +115,14 @@ Editor::Editor(QWidget *parent)
     AhideStatusBar->setChecked(false);
     connect(AhideStatusBar, &QAction::toggled, this, &Editor::hideStatusBar);
     view->addAction(AhideStatusBar);
+
+    AhideToolBar = new QAction(QPixmap("icons/icons8-unchecked-checkbox-64.png"),
+        "Hide Tool Bar", this);
+    AhideToolBar->setShortcut(tr("Alt+T"));
+    AhideToolBar->setCheckable(true);
+    AhideToolBar->setChecked(false);
+    connect(AhideToolBar, &QAction::toggled, this, &Editor::hideToolBar);
+    view->addAction(AhideToolBar);
 
     AautoSave = new QAction(QPixmap("icons/icons8-unchecked-checkbox-64.png"),
         "Auto-save current file", this);
@@ -122,6 +135,21 @@ Editor::Editor(QWidget *parent)
     AsetFont->setShortcut(tr("Ctrl+F"));
     connect(AsetFont, &QAction::triggered, this, &Editor::font);
     preferences->addAction(AsetFont);
+
+    // ToolBar
+    toolbar->addAction(AnewFile);
+    toolbar->addAction(AopenFile);
+    toolbar->addAction(AsaveFile);
+    toolbar->addSeparator();
+    toolbar->addAction(AselectAll);
+    toolbar->addAction(Acut);
+    toolbar->addAction(Acopy);
+    toolbar->addAction(Apaste);
+    toolbar->addSeparator();
+    toolbar->addAction(Aundo);
+    toolbar->addAction(Aredo);
+    toolbar->addSeparator();
+    toolbar->addAction(Aquit);
 
     // Status Bar
     statusBar()->setStyleSheet("background: #0f4851; color: #f5f5f5");
@@ -333,6 +361,15 @@ void Editor::hideStatusBar()
     else
         statusBar()->show();
     emit checkboxToggled(AhideStatusBar);
+}
+
+void Editor::hideToolBar()
+{
+    if (toolbar->isVisible())
+        toolbar->hide();
+    else
+        toolbar->show();
+    emit checkboxToggled(AhideToolBar);
 }
 
 void Editor::autoSave()
