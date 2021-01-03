@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <QPlainTextEdit>
 #include <QLabel>
-//#include <QToolBar>
+#include <QToolBar>
 #include <QTimer>
 #include <QTimerEvent>
 class Editor : public QMainWindow
@@ -16,7 +16,7 @@ public:
     static int const DEFAULT_FONT_SIZE = 14;
     static int const MAX_FONT_SIZE = 24;
     Editor(QWidget *parent = nullptr);
-    ~Editor();
+    virtual ~Editor();
 
 protected:
 

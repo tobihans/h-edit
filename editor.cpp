@@ -182,6 +182,32 @@ Editor::Editor(QWidget *parent)
 
 Editor::~Editor()
 {
+    delete file;
+    delete edit;
+    delete view;
+    delete preferences;
+
+    delete toolbar;
+    delete AnewFile;
+    delete AopenFile;
+    delete AsaveFile;
+    delete AsaveFileAs;
+    delete Aquit;
+    delete Acut;
+    delete Acopy;
+    delete Apaste;
+    delete AselectAll;
+    delete Aundo;
+    delete Aredo;
+    delete AhideStatusBar;
+    delete AhideToolBar;
+    delete AautoSave;
+    delete AsetFont;
+    delete AoriginalFontSize;
+    delete AincreaseFontSize;
+    delete AdecreaseFontSize;
+    delete editArea;
+    delete statusBarText;
     delete editArea;
 }
 
