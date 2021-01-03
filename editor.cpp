@@ -303,6 +303,7 @@ void Editor::open()
     }
     QTextStream in{&file};
     editArea->setPlainText(in.readAll());
+    setWindowTitle(QFileInfo(fileName).fileName());
     currentFile = fileName;
 }
 
@@ -313,21 +314,9 @@ void Editor::save()
     if (currentFile.isEmpty()) {
         fileName = QFileDialog::getSaveFileName(this, "Save");
         currentFile = fileName;
-//        // Verify if the file already exists
-//        QFile file{fileName};
-//        if (file.exists())
-//        {
-//            QMessageBox overwrite;
-//            overwrite.setText(currentFile + " already exists");
-//            overwrite.setInformativeText("Do you want to overwrite its content ?");
-//            overwrite.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-//            overwrite.setDefaultButton(QMessageBox::No);
-//            int answer = overwrite.exec();
-//            if (answer == QMessageBox::No)
-//                return;
-//        }
-
-    } else {
+    }
+    else
+    {
         fileName = currentFile;
     }
     QFile file(fileName);
@@ -335,11 +324,12 @@ void Editor::save()
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
         return;
     }
-    setWindowTitle(QFileInfo(fileName).baseName());
+    setWindowTitle(QFileInfo(fileName).fileName());
     QTextStream out(&file);
     QString text = editArea->toPlainText();
     out << text;
     file.close();
+    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz  ddd dd MMM yyyy"));
 }
 
 void Editor::saveAs()
@@ -352,11 +342,12 @@ void Editor::saveAs()
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
         return;
     }
-    setWindowTitle(QFileInfo(fileName).baseName());
+    setWindowTitle(QFileInfo(fileName).fileName());
     QTextStream out(&file);
     QString text = editArea->toPlainText();
     out << text;
     file.close();
+    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz  ddd dd MMM yyyy"));
 }
 
 void Editor::quit()
