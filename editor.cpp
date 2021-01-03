@@ -30,7 +30,7 @@ Editor::Editor(QWidget *parent)
     qApp->setFont(QFont("Comic Sans MS"));
     connect(this, &Editor::checkboxToggled, this, &Editor::toggleCheckbox);
     editArea = new QPlainTextEdit;
-    editArea->setFont(QFont("Sans Serif"));
+    editArea->setFont(QFont("monospace"));
     setCentralWidget(editArea);
     setWindowTitle("h-edit");
 
@@ -78,7 +78,7 @@ Editor::Editor(QWidget *parent)
     connect(Acut, &QAction::triggered, this, &Editor::cut);
     edit->addAction(Acut);
 
-    Acopy = new QAction(QPixmap("icons/icons8-cut-64.png"), "Copy", this);
+    Acopy = new QAction(QPixmap("icons/icons8-copy-64.png"), "Copy", this);
     Acopy->setShortcut(tr("Ctrl+C"));
     connect(Acopy, &QAction::triggered, this, &Editor::copy);
     edit->addAction(Acopy);

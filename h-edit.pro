@@ -23,4 +23,21 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    README
+    .gitignore \
+    README \
+    icons/icons8-checked-64.png \
+    icons/icons8-choose-font-48.png \
+    icons/icons8-copy-64.png \
+    icons/icons8-cut-64.png \
+    icons/icons8-decrease-font-48.png \
+    icons/icons8-exit-64.png \
+    icons/icons8-file-64.png \
+    icons/icons8-increase-font-48.png \
+    icons/icons8-opened-folder-64.png \
+    icons/icons8-paste-64.png \
+    icons/icons8-redo-64.png \
+    icons/icons8-save-64.png \
+    icons/icons8-save-as-64.png \
+    icons/icons8-select-all-64.png \
+    icons/icons8-unchecked-checkbox-64.png \
+    icons/icons8-undo-64.png
