@@ -40,4 +40,6 @@ DISTFILES += \
     icons/icons8-save-as-64.png \
     icons/icons8-select-all-64.png \
     icons/icons8-unchecked-checkbox-64.png \
-    icons/icons8-undo-64.png
+    icons/icons8-undo-64.png \
+    icons/icons8-zoom-in-64.png \
+    icons/icons8-zoom-out-64.png

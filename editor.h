@@ -12,6 +12,9 @@ class Editor : public QMainWindow
     Q_OBJECT
 
 public:
+    static int const MIN_FONT_SIZE = 7;
+    static int const DEFAULT_FONT_SIZE = 14;
+    static int const MAX_FONT_SIZE = 24;
     Editor(QWidget *parent = nullptr);
     ~Editor();
 
@@ -32,6 +35,9 @@ private slots:
     void undo();
     void redo();
     void font();
+    void increaseFontSize();
+    void decreaseFontSize();
+    void originalFontSize();
     void hideStatusBar();
     void hideToolBar();
     void autoSave();
@@ -61,6 +67,9 @@ private:
     QAction *AhideToolBar;
     QAction *AautoSave;
     QAction *AsetFont;
+    QAction *AoriginalFontSize;
+    QAction *AincreaseFontSize;
+    QAction *AdecreaseFontSize;
 
 
     QPlainTextEdit *editArea;

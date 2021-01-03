@@ -18,9 +18,11 @@
 #include <QTextStream>
 #include "editor.h"
 
+static int fontSize;
 Editor::Editor(QWidget *parent)
     : QMainWindow(parent)
 {
+    fontSize = 14;
     // General style
     QString style{
         "QMainWindow { font-size: 12px; }"
@@ -28,17 +30,17 @@ Editor::Editor(QWidget *parent)
         "QMenu QAction:hover { background: #098890; }"
     };
     qApp->setStyleSheet(style);
-    qApp->setFont(QFont("Comic Sans MS"));
+    qApp->setFont(QFont("monospace"));
     connect(this, &Editor::checkboxToggled, this, &Editor::toggleCheckbox);
     editArea = new QPlainTextEdit;
     editArea->setFont(QFont("monospace"));
-    editArea->setStyleSheet("font-size: 20px");
+    editArea->setStyleSheet(QString("font-size: %1px").arg(DEFAULT_FONT_SIZE));
     setCentralWidget(editArea);
     setWindowTitle("h-edit");
     toolbar = addToolBar("Main Toolbar");
 
     // Menus
-    menuBar()->setStyleSheet("color: #0f4851");
+    menuBar()->setStyleSheet("font-size: 14px; color: #0f4851");
     file = menuBar()->addMenu("&File");
     edit = menuBar()->addMenu("&Edit");
     view = menuBar()->addMenu("&View");
@@ -99,14 +101,31 @@ Editor::Editor(QWidget *parent)
 
     Aundo = new QAction(QPixmap("icons/icons8-undo-64.png"), "Undo", this);
     Aundo->setShortcut(tr("Ctrl+Z"));
+    connect(Aundo, &QAction::triggered, this, &Editor::undo);
     edit->addSeparator();
     edit->addAction(Aundo);
 
 
     Aredo = new QAction(QPixmap("icons/icons8-redo-64.png"), "Redo", this);
     Aredo->setShortcut(tr("Ctrl+R"));
+    connect(Aredo, &QAction::triggered, this, &Editor::redo);
     edit->addAction(Aredo);
 
+    AincreaseFontSize = new QAction(QPixmap("icons/icons8-zoom-in-64.png"), "Zoom &in", this);
+    AincreaseFontSize->setShortcut(tr("Ctrl++"));
+    connect(AincreaseFontSize, &QAction::triggered, this, &Editor::increaseFontSize);
+    view->addSeparator();
+    view->addAction(AincreaseFontSize);
+
+    AdecreaseFontSize = new QAction(QPixmap("icons/icons8-zoom-out-64.png"), "Zoom &out", this);
+    AdecreaseFontSize->setShortcut(tr("Ctrl+-"));
+    connect(AdecreaseFontSize, &QAction::triggered, this, &Editor::decreaseFontSize);
+    view->addAction(AdecreaseFontSize);
+
+    AoriginalFontSize = new QAction(QPixmap("icons/icons8-original-size-64.png"), "Default &Size", this);
+    AoriginalFontSize->setShortcut(tr("Ctrl+0"));
+    connect(AoriginalFontSize, &QAction::triggered, this, &Editor::originalFontSize);
+    view->addAction(AoriginalFontSize);
 
     AhideStatusBar = new QAction(QPixmap("icons/icons8-unchecked-checkbox-64.png"),
         "Hide Status Bar", this);
@@ -148,6 +167,9 @@ Editor::Editor(QWidget *parent)
     toolbar->addSeparator();
     toolbar->addAction(Aundo);
     toolbar->addAction(Aredo);
+    toolbar->addSeparator();
+    toolbar->addAction(AincreaseFontSize);
+    toolbar->addAction(AdecreaseFontSize);
     toolbar->addSeparator();
     toolbar->addAction(Aquit);
 
@@ -352,6 +374,31 @@ void Editor::font()
        QFont font = QFontDialog::getFont(&fontSelected, this);
        if (fontSelected)
            editArea->setFont(font);
+}
+
+void Editor::increaseFontSize()
+{
+    int size{fontSize + (10 * Editor::DEFAULT_FONT_SIZE / 100)};
+    if (size < Editor::MAX_FONT_SIZE)
+    {
+        fontSize = size;
+        editArea->setStyleSheet(QString("font-size: %1px").arg(size));
+    }
+}
+
+void Editor::decreaseFontSize()
+{
+    int size{fontSize - (10 * Editor::DEFAULT_FONT_SIZE / 100)};
+    if (size > Editor::MIN_FONT_SIZE)
+    {
+        fontSize = size;
+        editArea->setStyleSheet(QString("font-size: %1px").arg(size));
+    }
+}
+
+void Editor::originalFontSize()
+{
+    editArea->setStyleSheet(QString("font-size: %1px").arg(Editor::DEFAULT_FONT_SIZE));
 }
 
 void Editor::hideStatusBar()
