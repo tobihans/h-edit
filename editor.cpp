@@ -156,6 +156,8 @@ Editor::Editor(QWidget *parent)
     preferences->addAction(AsetFont);
 
     // ToolBar
+    toolbar->setAllowedAreas(Qt::TopToolBarArea | Qt::RightToolBarArea);
+    toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
     toolbar->addAction(AnewFile);
     toolbar->addAction(AopenFile);
     toolbar->addAction(AsaveFile);
@@ -174,7 +176,7 @@ Editor::Editor(QWidget *parent)
     toolbar->addAction(Aquit);
 
     // Status Bar
-    statusBar()->setStyleSheet("background: #0f4851; color: #f5f5f5");
+    statusBar()->setStyleSheet("background: #0f4851; color: #f5f5f5; font-size: 14px;");
     statusBarText = new QLabel;
     statusBarText->setAlignment(Qt::AlignLeft);
     statusBar()->addPermanentWidget(statusBarText);
@@ -208,7 +210,6 @@ Editor::~Editor()
     delete AdecreaseFontSize;
     delete editArea;
     delete statusBarText;
-    delete editArea;
 }
 
 void Editor::newF()
@@ -329,7 +330,7 @@ void Editor::save()
     QString text = editArea->toPlainText();
     out << text;
     file.close();
-    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz  ddd dd MMM yyyy"));
+    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
 }
 
 void Editor::saveAs()
@@ -347,7 +348,7 @@ void Editor::saveAs()
     QString text = editArea->toPlainText();
     out << text;
     file.close();
-    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz  ddd dd MMM yyyy"));
+    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
 }
 
 void Editor::quit()
@@ -488,5 +489,5 @@ void Editor::timerEvent(QTimerEvent *event)
     QString text = editArea->toPlainText();
     out << text;
     file.close();
-    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz  ddd dd MMM yyyy"));
+    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
 }
