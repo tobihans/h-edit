@@ -5,6 +5,7 @@
 #include <QPlainTextEdit>
 #include <QLabel>
 #include <QToolBar>
+#include <QTabWidget>
 #include <QTimer>
 #include <QTimerEvent>
 class Editor : public QMainWindow
@@ -12,6 +13,7 @@ class Editor : public QMainWindow
     Q_OBJECT
 
 public:
+    static int untitled_files_nb;
     static int const MIN_FONT_SIZE = 7;
     static int const DEFAULT_FONT_SIZE = 14;
     static int const MAX_FONT_SIZE = 24;
@@ -71,10 +73,13 @@ private:
     QAction *AincreaseFontSize;
     QAction *AdecreaseFontSize;
 
-
-    QPlainTextEdit *editArea;
+    // Multiple files
+    QTabWidget *tabs;
+    QList<QPlainTextEdit*> editAreas;
+    QList<QString> files;
+    QList<QString> informativeText;
+    //////////
     QLabel *statusBarText;
-    QString currentFile;
 signals:
     // To set the right icon for checkable actions
     void checkboxToggled(QAction *action);

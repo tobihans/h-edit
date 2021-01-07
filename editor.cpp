@@ -14,11 +14,16 @@
 #include <QDateTime>
 #include <QTimer>
 #include <QTimerEvent>
+#include <QTabWidget>
+#include <QTabBar>
 #include <QLabel>
 #include <QTextStream>
 #include "editor.h"
 
 static int fontSize;
+// For counting the number untitled files opened
+int Editor::untitled_files_nb = 1;
+
 Editor::Editor(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -32,10 +37,18 @@ Editor::Editor(QWidget *parent)
     qApp->setStyleSheet(style);
     qApp->setFont(QFont("monospace"));
     connect(this, &Editor::checkboxToggled, this, &Editor::toggleCheckbox);
-    editArea = new QPlainTextEdit;
-    editArea->setFont(QFont("monospace"));
-    editArea->setStyleSheet(QString("font-size: %1px").arg(DEFAULT_FONT_SIZE));
-    setCentralWidget(editArea);
+    tabs = new QTabWidget;
+    tabs->setDocumentMode(true);
+    tabs->setTabsClosable(true);
+    tabs->setTabBarAutoHide(true);
+    setCentralWidget(tabs);
+
+    // Create the first tab
+    editAreas.append(new QPlainTextEdit);
+    informativeText.append("");
+    files.append("");
+    tabs->addTab(editAreas[0], QPixmap("icons/icons8-file-64.png"),
+        QString("Untitled%1").arg(untitled_files_nb));
     setWindowTitle("h-edit");
     toolbar = addToolBar("Main Toolbar");
 
@@ -208,91 +221,27 @@ Editor::~Editor()
     delete AoriginalFontSize;
     delete AincreaseFontSize;
     delete AdecreaseFontSize;
-    delete editArea;
     delete statusBarText;
+    // Delete Widgets for tab pages
+    for (auto *editArea: editAreas)
+        delete editArea;
 }
 
 void Editor::newF()
 {
-//    // If there is unsaved changes
-//    if (!currentFile.isEmpty())
-//    {
-//        QFile file{currentFile};
-//        if (!file.open(QIODevice::ReadOnly))
-//        {
-//            QMessageBox::warning(this, "Error", "There was an error reading file:" + file.errorString(),
-//                QMessageBox::Ok);
-//        }
-//        else
-//        {
-//            QTextStream in{&file};
-//            QString content{in.readAll()};
-//            if (content != editArea->toPlainText())
-//            {
-//                QMessageBox warning;
-//                warning.setText("Unsaved Changes");
-//                warning.setInformativeText(QString("%1 was modified.").arg(currentFile));
-//                warning.setStandardButtons(QMessageBox::Discard | QMessageBox::Cancel | QMessageBox::Save);
-//                warning.setDefaultButton(QMessageBox::Save);
-//                int ans = warning.exec();
-//                switch (ans)
-//                {
-//                    case QMessageBox::Discard:
-//                        setWindowTitle("Untitled");
-//                        editArea->insertPlainText("");
-//                        break;
-//                    case QMessageBox::Cancel:
-//                        return;
-//                    case QMessageBox::Save:
-//                        this->save();
-//                        setWindowTitle("Untitled");
-//                        editArea->insertPlainText("");
-//                        break;
-//                    default:
-//                    QMessageBox::warning(this, "Hans", "Hans");
-//                        break;
-
-//                }
-//            }
-//        }
-//        return;
-//    }
-//    if (currentFile.isEmpty() && editArea->toPlainText() != "")
-//    {
-//        QMessageBox warning;
-//        warning.setText("Unsaved Changes");
-//        warning.setInformativeText(" The file was modified.");
-//        warning.setStandardButtons(QMessageBox::Discard | QMessageBox::Cancel | QMessageBox::Save);
-//        warning.setDefaultButton(QMessageBox::Save);
-//        int ans = warning.exec();
-//        switch (ans)
-//        {
-//            case QMessageBox::Discard:
-//                setWindowTitle("Untitled");
-//                editArea->insertPlainText("");
-//                break;
-//            case QMessageBox::Cancel:
-//                return;
-//            case QMessageBox::Save:
-//                this->save();
-//                setWindowTitle("Untitled");
-//                editArea->insertPlainText("");
-//                break;
-//            default:
-//            QMessageBox::warning(this, "Hans", "Hans");
-//                break;
-
-//        }
-//    }
-//    else
-    currentFile.clear();
-    editArea->clear();
-    setWindowTitle("Untitled");
-    editArea->insertPlainText("");
+    Editor::untitled_files_nb++;
+    editAreas.append(new QPlainTextEdit);
+    files.append("");
+    informativeText.append("");
+    int i = editAreas.size() - 1;
+    tabs->addTab(editAreas[i], QPixmap("icons/icons8-file-64.png"),
+        QString("Untitled%1").arg(Editor::untitled_files_nb));
 }
 
 void Editor::open()
 {
+    int index{tabs->currentIndex()};
+    auto *currentTab{editAreas[index]};
     QString fileName;
     fileName = QFileDialog::getOpenFileName(this, "Open a file", QDir::homePath());
     if (fileName.isEmpty()) return;
@@ -303,18 +252,22 @@ void Editor::open()
         return;
     }
     QTextStream in{&file};
-    editArea->setPlainText(in.readAll());
-    setWindowTitle(QFileInfo(fileName).fileName());
-    currentFile = fileName;
+    currentTab->setPlainText(in.readAll());
+    tabs->setTabText(index, QFileInfo(fileName).fileName());
+    files[index] = fileName;
+    tabs->tabBar()->show();
 }
 
 void Editor::save()
 {
+    int index{tabs->currentIndex()};
+    auto *editArea{editAreas[index]};
+    QString currentFile{{files[index]}};
     QString fileName;
     // If  no fileName
     if (currentFile.isEmpty()) {
         fileName = QFileDialog::getSaveFileName(this, "Save");
-        currentFile = fileName;
+        files[index] = fileName;
     }
     else
     {
@@ -325,30 +278,34 @@ void Editor::save()
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
         return;
     }
-    setWindowTitle(QFileInfo(fileName).fileName());
+    tabs->setTabText(index, QFileInfo(fileName).fileName());
     QTextStream out(&file);
     QString text = editArea->toPlainText();
     out << text;
     file.close();
-    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
+    tabs->tabBar()->show();
+//    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
 }
 
 void Editor::saveAs()
 {
+    int index{tabs->currentIndex()};
+    auto *editArea{editAreas[index]};
     QString fileName;
     fileName = QFileDialog::getSaveFileName(this, "Save");
-    currentFile = fileName;
+    files[index] = fileName;
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
         return;
     }
-    setWindowTitle(QFileInfo(fileName).fileName());
+    tabs->setTabText(index, QFileInfo(fileName).fileName());
     QTextStream out(&file);
     QString text = editArea->toPlainText();
     out << text;
     file.close();
-    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
+    tabs->tabBar()->show();
+//    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
 }
 
 void Editor::quit()
@@ -358,31 +315,43 @@ void Editor::quit()
 
 void Editor::cut()
 {
+    int index{tabs->currentIndex()};
+    auto *editArea{editAreas[index]};
     editArea->cut();
 }
 
 void Editor::copy()
 {
+    int index{tabs->currentIndex()};
+    auto *editArea{editAreas[index]};
     editArea->copy();
 }
 
 void Editor::paste()
 {
+    int index{tabs->currentIndex()};
+    auto *editArea{editAreas[index]};
     editArea->paste();
 }
 
 void Editor::selectAll()
 {
+    int index{tabs->currentIndex()};
+    auto *editArea{editAreas[index]};
     editArea->selectAll();
 }
 
 void Editor::undo()
 {
+    int index{tabs->currentIndex()};
+    auto *editArea{editAreas[index]};
     editArea->undo();
 }
 
 void Editor::redo()
 {
+    int index{tabs->currentIndex()};
+    auto *editArea{editAreas[index]};
     editArea->redo();
 }
 
@@ -391,7 +360,8 @@ void Editor::font()
     bool fontSelected;
        QFont font = QFontDialog::getFont(&fontSelected, this);
        if (fontSelected)
-           editArea->setFont(font);
+           for (auto *editArea: editAreas)
+               editArea->setFont(font);
 }
 
 void Editor::increaseFontSize()
@@ -400,7 +370,8 @@ void Editor::increaseFontSize()
     if (size < Editor::MAX_FONT_SIZE)
     {
         fontSize = size;
-        editArea->setStyleSheet(QString("font-size: %1px").arg(size));
+        for (auto *editArea: editAreas)
+            editArea->setStyleSheet(QString("font-size: %1px").arg(size));
     }
 }
 
@@ -410,13 +381,15 @@ void Editor::decreaseFontSize()
     if (size > Editor::MIN_FONT_SIZE)
     {
         fontSize = size;
-        editArea->setStyleSheet(QString("font-size: %1px").arg(size));
+        for (auto *editArea: editAreas)
+            editArea->setStyleSheet(QString("font-size: %1px").arg(size));
     }
 }
 
 void Editor::originalFontSize()
 {
-    editArea->setStyleSheet(QString("font-size: %1px").arg(Editor::DEFAULT_FONT_SIZE));
+    for (auto *editArea: editAreas)
+        editArea->setStyleSheet(QString("font-size: %1px").arg(Editor::DEFAULT_FONT_SIZE));
 }
 
 void Editor::hideStatusBar()
@@ -440,6 +413,7 @@ void Editor::hideToolBar()
 void Editor::autoSave()
 {
     static int id;
+    auto currentFile{files[tabs->currentIndex()]};
     if (AautoSave->isChecked())
     {
         if (currentFile.isEmpty()) {
@@ -479,7 +453,9 @@ void Editor::toggleCheckbox(QAction *action)
 void Editor::timerEvent(QTimerEvent *event)
 {
     Q_UNUSED(event);
-    QFile file(currentFile);
+    auto currentFile{files[tabs->currentIndex()]};
+    auto *editArea{editAreas[tabs->currentIndex()]};
+    QFile file{currentFile};
     if (!file.open(QIODevice::WriteOnly | QFile::Text))
     {
         QMessageBox::warning(this, "Warning", "Cannot save file automatically : " + file.errorString());
@@ -489,5 +465,5 @@ void Editor::timerEvent(QTimerEvent *event)
     QString text = editArea->toPlainText();
     out << text;
     file.close();
-    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
+//    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
 }
