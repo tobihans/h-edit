@@ -39,7 +39,6 @@ CodeEdit::CodeEdit(QWidget *parent) :
 
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
-
 }
 
 int CodeEdit::lineNumberAreaWidth()

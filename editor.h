@@ -21,7 +21,6 @@ public:
     virtual ~Editor();
 
 protected:
-
     void timerEvent(QTimerEvent *event);
 
 private slots:
@@ -83,6 +82,5 @@ private:
 signals:
     // To set the right icon for checkable actions
     void checkboxToggled(QAction *action);
-
 };
 #endif // EDITOR_H

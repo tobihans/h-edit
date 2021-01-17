@@ -430,7 +430,6 @@ void Editor::autoSave()
     {
         killTimer(id);
     }
-
 }
 
 void Editor::toggleCheckbox(QAction *action)
@@ -446,7 +445,6 @@ void Editor::toggleCheckbox(QAction *action)
         {
             action->setChecked(false);
             action->setIcon(QPixmap("icons/icons8-unchecked-checkbox-64.png"));
-
         }
     }
 }
