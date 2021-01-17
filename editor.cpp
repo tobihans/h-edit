@@ -18,6 +18,7 @@
 #include <QTabBar>
 #include <QLabel>
 #include <QTextStream>
+#include "codeedit.h"
 #include "editor.h"
 
 static int fontSize;
@@ -44,11 +45,11 @@ Editor::Editor(QWidget *parent)
     setCentralWidget(tabs);
 
     // Create the first tab
-    editAreas.append(new QPlainTextEdit);
+    editAreas.append(new CodeEdit);
     informativeText.append("");
     files.append("");
     tabs->addTab(editAreas[0], QPixmap("icons/icons8-file-64.png"),
-        QString("Untitled%1").arg(untitled_files_nb));
+        QString("Untitled %1").arg(untitled_files_nb));
     setWindowTitle("h-edit");
     toolbar = addToolBar("Main Toolbar");
 
@@ -230,7 +231,7 @@ Editor::~Editor()
 void Editor::newF()
 {
     Editor::untitled_files_nb++;
-    editAreas.append(new QPlainTextEdit);
+    editAreas.append(new CodeEdit);
     files.append("");
     informativeText.append("");
     int i = editAreas.size() - 1;
