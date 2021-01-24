@@ -8,6 +8,8 @@
 #include <QTabWidget>
 #include <QTimer>
 #include <QTimerEvent>
+#include <QDialog>
+
 class Editor : public QMainWindow
 {
     Q_OBJECT
@@ -42,8 +44,15 @@ private slots:
     void hideStatusBar();
     void hideToolBar();
     void autoSave();
+    void closeTab();
+    void openSettingsTab();
     void toggleCheckbox(QAction *action);
 private:
+    void initMenu();
+    void initActions();
+    void initToolBar();
+    void initStatusBar();
+
     // Menu
     QMenu *file;
     QMenu *edit;
@@ -68,6 +77,7 @@ private:
     QAction *AhideToolBar;
     QAction *AautoSave;
     QAction *AsetFont;
+    QAction *AeditSettings;
     QAction *AoriginalFontSize;
     QAction *AincreaseFontSize;
     QAction *AdecreaseFontSize;
@@ -79,6 +89,10 @@ private:
     QList<QString> informativeText;
     //////////
     QLabel *statusBarText;
+
+    // Settings Widget
+    bool isSettingsTabOpened;
+    QWidget *settings;
 signals:
     // To set the right icon for checkable actions
     void checkboxToggled(QAction *action);

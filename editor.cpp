@@ -18,8 +18,11 @@
 #include <QTabBar>
 #include <QLabel>
 #include <QTextStream>
+#include <QDockWidget>
+#include <QTreeWidget>
 #include "codeedit.h"
 #include "editor.h"
+#include "settings.h"
 
 static int fontSize;
 // For counting the number untitled files opened
@@ -28,6 +31,8 @@ int Editor::untitled_files_nb = 1;
 Editor::Editor(QWidget *parent)
     : QMainWindow(parent)
 {
+    settings = nullptr;
+    isSettingsTabOpened = false;
     fontSize = 14;
     // General style
     QString style{
@@ -41,26 +46,82 @@ Editor::Editor(QWidget *parent)
     tabs = new QTabWidget;
     tabs->setDocumentMode(true);
     tabs->setTabsClosable(true);
-    tabs->setTabBarAutoHide(true);
     setCentralWidget(tabs);
-
+    connect(tabs, &QTabWidget::tabCloseRequested, this, &Editor::closeTab);
+    this->addDockWidget(Qt::LeftDockWidgetArea ,new QDockWidget("Working Directories"));
     // Create the first tab
     editAreas.append(new CodeEdit);
     informativeText.append("");
     files.append("");
     tabs->addTab(editAreas[0], QPixmap("icons/icons8-file-64.png"),
         QString("Untitled %1").arg(untitled_files_nb));
+    connect(tabs, static_cast<void(QTabWidget::*)(int)>(&QTabWidget::tabCloseRequested), [this](int i){
+        if (this->tabs->widget(i) == this->settings)
+        {
+            this->isSettingsTabOpened = false;
+            this->tabs->removeTab(i);
+            return;
+        }
+        if (this->tabs->count() == 1)
+            qApp->quit();
+        files.removeAt(i);
+        tabs->removeTab(i);    });
     setWindowTitle("h-edit");
-    toolbar = addToolBar("Main Toolbar");
 
     // Menus
+    initMenu();
+    // Actions
+    initActions();
+    // ToolBar
+    initToolBar();
+    // Status Bar
+    initStatusBar();
+}
+
+Editor::~Editor()
+{
+    delete file;
+    delete edit;
+    delete view;
+    delete preferences;
+
+    delete toolbar;
+    delete AnewFile;
+    delete AopenFile;
+    delete AsaveFile;
+    delete AsaveFileAs;
+    delete Aquit;
+    delete Acut;
+    delete Acopy;
+    delete Apaste;
+    delete AselectAll;
+    delete Aundo;
+    delete Aredo;
+    delete AhideStatusBar;
+    delete AhideToolBar;
+    delete AautoSave;
+    delete AsetFont;
+    delete AoriginalFontSize;
+    delete AincreaseFontSize;
+    delete AdecreaseFontSize;
+    delete statusBarText;
+    // Delete Widgets for tab pages
+    for (auto *editArea: editAreas)
+        delete editArea;
+}
+
+
+void Editor::initMenu()
+{
     menuBar()->setStyleSheet("font-size: 14px; color: #0f4851");
     file = menuBar()->addMenu("&File");
     edit = menuBar()->addMenu("&Edit");
     view = menuBar()->addMenu("&View");
     preferences = menuBar()->addMenu("&Preferences");
+}
 
-        // Actions
+void Editor::initActions()
+{
     AnewFile = new QAction(QPixmap("icons/icons8-file-64.png"),
         "&New File", this);
     AnewFile->setShortcut(tr("Ctrl+N"));
@@ -169,7 +230,15 @@ Editor::Editor(QWidget *parent)
     connect(AsetFont, &QAction::triggered, this, &Editor::font);
     preferences->addAction(AsetFont);
 
-    // ToolBar
+    AeditSettings = new QAction(QPixmap("icons/settings"), "&Settings", this);
+    AeditSettings->setShortcut(tr("Ctrl+P"));
+    connect(AeditSettings, &QAction::triggered, this, &Editor::openSettingsTab);
+    preferences->addAction(AeditSettings);
+}
+
+void Editor::initToolBar()
+{
+    toolbar = addToolBar("Main Toolbar");
     toolbar->setAllowedAreas(Qt::TopToolBarArea | Qt::RightToolBarArea);
     toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
     toolbar->addAction(AnewFile);
@@ -188,44 +257,14 @@ Editor::Editor(QWidget *parent)
     toolbar->addAction(AdecreaseFontSize);
     toolbar->addSeparator();
     toolbar->addAction(Aquit);
+}
 
-    // Status Bar
+void Editor::initStatusBar()
+{
     statusBar()->setStyleSheet("background: #0f4851; color: #f5f5f5; font-size: 14px;");
     statusBarText = new QLabel;
     statusBarText->setAlignment(Qt::AlignLeft);
     statusBar()->addPermanentWidget(statusBarText);
-}
-
-Editor::~Editor()
-{
-    delete file;
-    delete edit;
-    delete view;
-    delete preferences;
-
-    delete toolbar;
-    delete AnewFile;
-    delete AopenFile;
-    delete AsaveFile;
-    delete AsaveFileAs;
-    delete Aquit;
-    delete Acut;
-    delete Acopy;
-    delete Apaste;
-    delete AselectAll;
-    delete Aundo;
-    delete Aredo;
-    delete AhideStatusBar;
-    delete AhideToolBar;
-    delete AautoSave;
-    delete AsetFont;
-    delete AoriginalFontSize;
-    delete AincreaseFontSize;
-    delete AdecreaseFontSize;
-    delete statusBarText;
-    // Delete Widgets for tab pages
-    for (auto *editArea: editAreas)
-        delete editArea;
 }
 
 void Editor::newF()
@@ -256,7 +295,6 @@ void Editor::open()
     currentTab->setPlainText(in.readAll());
     tabs->setTabText(index, QFileInfo(fileName).fileName());
     files[index] = fileName;
-    tabs->tabBar()->show();
 }
 
 void Editor::save()
@@ -429,6 +467,23 @@ void Editor::autoSave()
     else
     {
         killTimer(id);
+    }
+}
+
+void Editor::closeTab()
+{
+
+}
+
+void Editor::openSettingsTab()
+{
+    if (!isSettingsTabOpened)
+    {
+//        settings = new QMainWindow(nullptr, Qt::Widget);
+        settings = new Settings;
+        tabs->addTab(settings , "Settings");
+        tabs->setCurrentWidget(settings);
+        isSettingsTabOpened = true;
     }
 }
 

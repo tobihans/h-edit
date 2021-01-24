@@ -12,10 +12,14 @@ SOURCES += \
     codeedit.cpp \
     main.cpp \
     editor.cpp \
+    settings.cpp \
+    settingsmodel.cpp
 
 HEADERS += \
     codeedit.h \
     editor.h \
+    settings.h \
+    settingsmodel.h
 
 FORMS +=
 

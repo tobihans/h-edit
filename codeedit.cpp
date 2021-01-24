@@ -4,6 +4,7 @@
 #include <QResizeEvent>
 #include <QPainter>
 #include <QTextBlock>
+#include <QPen>
 #include "codeedit.h"
 
 
@@ -101,6 +102,8 @@ void CodeEdit::highlightCurrentLine()
 
 void CodeEdit::lineNumberAreaPaintEvent(QPaintEvent *event)
 {
+    QPen pen("#f5f5f5");
+    pen.setWidth(4);
     QPainter painter(lineNumberArea);
     painter.fillRect(event->rect(), "#0f4851");
     QTextBlock block = firstVisibleBlock();
@@ -110,8 +113,8 @@ void CodeEdit::lineNumberAreaPaintEvent(QPaintEvent *event)
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
             QString number = QString::number(blockNumber + 1);
-            painter.setPen("#f5f5f5");
-            painter.drawText(0, top, lineNumberArea->width(), fontMetrics().height(), Qt::AlignRight, number);
+            painter.setPen(pen);
+            painter.drawText(0, top, lineNumberArea->width(), fontMetrics().height(), Qt::AlignCenter, number);
         }
 
         block = block.next();
