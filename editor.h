@@ -9,6 +9,10 @@
 #include <QTimer>
 #include <QTimerEvent>
 #include <QDialog>
+#include <QDockWidget>
+#include <QTreeView>
+#include <QFileSystemModel>
+#include <QDir>
 
 class Editor : public QMainWindow
 {
@@ -48,6 +52,7 @@ private slots:
     void openSettingsTab();
     void toggleCheckbox(QAction *action);
 private:
+    void initTabWidget();
     void initMenu();
     void initActions();
     void initToolBar();
@@ -93,6 +98,12 @@ private:
     // Settings Widget
     bool isSettingsTabOpened;
     QWidget *settings;
+
+    //Working dir widgets
+    QDockWidget *wdDock;
+    QFileSystemModel *model;
+    QTreeView *tr_view;
+
 signals:
     // To set the right icon for checkable actions
     void checkboxToggled(QAction *action);

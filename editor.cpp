@@ -8,6 +8,7 @@
 #include <QFont>
 #include <QFontDialog>
 #include <QFileDialog>
+#include <QFile>
 #include <QFileInfo>
 #include <QDir>
 #include <QMessageBox>
@@ -19,7 +20,10 @@
 #include <QLabel>
 #include <QTextStream>
 #include <QDockWidget>
-#include <QTreeWidget>
+#include <QFileSystemModel>
+#include <QHeaderView>
+#include <QTreeView>
+#include <QIcon>
 #include "codeedit.h"
 #include "editor.h"
 #include "settings.h"
@@ -31,43 +35,29 @@ int Editor::untitled_files_nb = 1;
 Editor::Editor(QWidget *parent)
     : QMainWindow(parent)
 {
-    settings = nullptr;
+    settings = new Settings;
     isSettingsTabOpened = false;
     fontSize = 14;
+
     // General style
-    QString style{
-        "QMainWindow { font-size: 12px; }"
-        "QMainWindow, QPlainTextEdit{ background: #002b36; color: #f5f5f5}"
-        "QMenu QAction:hover { background: #098890; }"
-    };
-    qApp->setStyleSheet(style);
+    QFile file{"./themes/Ubuntu.qss"};
+    if (file.open(QFile::ReadOnly))
+    {
+        QString content{file.readAll()};
+        qApp->setStyleSheet(content);
+    }
+    //    QString style{
+    //        "QMainWindow { font-size: 12px; }"
+    //        "QMainWindow, QPlainTextEdit{ background: #002b36; color: #f5f5f5}"
+    //        "QMenu QAction:hover { background: #098890; }"
+    //    };
+    //    qApp->setStyleSheet(style);
     qApp->setFont(QFont("monospace"));
     connect(this, &Editor::checkboxToggled, this, &Editor::toggleCheckbox);
-    tabs = new QTabWidget;
-    tabs->setDocumentMode(true);
-    tabs->setTabsClosable(true);
-    setCentralWidget(tabs);
-    connect(tabs, &QTabWidget::tabCloseRequested, this, &Editor::closeTab);
-    this->addDockWidget(Qt::LeftDockWidgetArea ,new QDockWidget("Working Directories"));
-    // Create the first tab
-    editAreas.append(new CodeEdit);
-    informativeText.append("");
-    files.append("");
-    tabs->addTab(editAreas[0], QPixmap("icons/icons8-file-64.png"),
-        QString("Untitled %1").arg(untitled_files_nb));
-    connect(tabs, static_cast<void(QTabWidget::*)(int)>(&QTabWidget::tabCloseRequested), [this](int i){
-        if (this->tabs->widget(i) == this->settings)
-        {
-            this->isSettingsTabOpened = false;
-            this->tabs->removeTab(i);
-            return;
-        }
-        if (this->tabs->count() == 1)
-            qApp->quit();
-        files.removeAt(i);
-        tabs->removeTab(i);    });
     setWindowTitle("h-edit");
 
+    //Tabs
+    initTabWidget();
     // Menus
     initMenu();
     // Actions
@@ -76,6 +66,22 @@ Editor::Editor(QWidget *parent)
     initToolBar();
     // Status Bar
     initStatusBar();
+
+    model = new QFileSystemModel;
+    model->setReadOnly(false);
+//    model->setRootPath(QDir::homePath());
+    tr_view = new QTreeView;
+    tr_view->setModel(model);
+//    view->setRootIndex(model->setRootPath(QDir::homePath()));
+    tr_view->header()->hide();
+    tr_view->hideColumn(1);
+    tr_view->hideColumn(2);
+    tr_view->hideColumn(3);
+    wdDock = new QDockWidget;
+    wdDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
+    wdDock->setWidget(tr_view);
+    wdDock->hide();
+    this->addDockWidget(Qt::LeftDockWidgetArea, wdDock);
 }
 
 Editor::~Editor()
@@ -110,6 +116,31 @@ Editor::~Editor()
         delete editArea;
 }
 
+void Editor::initTabWidget()
+{
+    tabs = new QTabWidget;
+    tabs->setDocumentMode(true);
+    tabs->setTabsClosable(true);
+    this->setCentralWidget(tabs);
+    connect(tabs, &QTabWidget::tabCloseRequested, this, &Editor::closeTab);
+    // Create the first tab
+    editAreas.append(new CodeEdit);
+    informativeText.append("");
+    files.append("");
+    tabs->addTab(editAreas[0], QPixmap("icons/icons8-file-64.png"),
+            QString("Untitled %1").arg(untitled_files_nb));
+    connect(tabs, static_cast<void(QTabWidget::*)(int)>(&QTabWidget::tabCloseRequested), [this](int i){
+        if (this->tabs->widget(i) == this->settings)
+        {
+            this->isSettingsTabOpened = false;
+            this->tabs->removeTab(i);
+        }
+        if (this->tabs->count() == 1)
+            qApp->quit();
+        files.removeAt(i);
+        tabs->removeTab(i);
+    });
+}
 
 void Editor::initMenu()
 {
@@ -123,31 +154,31 @@ void Editor::initMenu()
 void Editor::initActions()
 {
     AnewFile = new QAction(QPixmap("icons/icons8-file-64.png"),
-        "&New File", this);
+                           "&New File", this);
     AnewFile->setShortcut(tr("Ctrl+N"));
     connect(AnewFile, &QAction::triggered, this, &Editor::newF);
     file->addAction(AnewFile);
 
     AopenFile = new QAction(QPixmap("icons/icons8-opened-folder-64.png"),
-        "&Open File", this);
+                            "&Open File", this);
     AopenFile->setShortcut(tr("Ctrl+O"));
     connect(AopenFile, &QAction::triggered, this, &Editor::open);
     file->addAction(AopenFile);
 
     AsaveFile = new QAction(QPixmap("icons/icons8-save-64.png"),
-        "Save File", this);
+                            "Save File", this);
     AsaveFile->setShortcut(tr("Ctrl+S"));
     connect(AsaveFile, &QAction::triggered, this, &Editor::save);
     file->addAction(AsaveFile);
 
     AsaveFileAs = new QAction(QPixmap("icons/icons8-save-as-64.png"),
-        "Save File As", this);
+                              "Save File As", this);
     AsaveFileAs->setShortcut(tr("Ctrl+Shift+S"));
     connect(AsaveFileAs, &QAction::triggered, this, &Editor::saveAs);
     file->addAction(AsaveFileAs);
 
     Aquit = new QAction(QPixmap("icons/icons8-exit-64.png"), "Quit",
-        this);
+                        this);
     Aquit->setShortcut(tr("Ctrl+Q"));
     connect(Aquit, &QAction::triggered, this, &Editor::quit);
     file->addSeparator();
@@ -203,7 +234,7 @@ void Editor::initActions()
     view->addAction(AoriginalFontSize);
 
     AhideStatusBar = new QAction(QPixmap("icons/icons8-unchecked-checkbox-64.png"),
-        "Hide Status Bar", this);
+                                 "Hide Status Bar", this);
     AhideStatusBar->setShortcut(tr("Alt+S"));
     AhideStatusBar->setCheckable(true);
     AhideStatusBar->setChecked(false);
@@ -211,7 +242,7 @@ void Editor::initActions()
     view->addAction(AhideStatusBar);
 
     AhideToolBar = new QAction(QPixmap("icons/icons8-unchecked-checkbox-64.png"),
-        "Hide Tool Bar", this);
+                               "Hide Tool Bar", this);
     AhideToolBar->setShortcut(tr("Alt+T"));
     AhideToolBar->setCheckable(true);
     AhideToolBar->setChecked(false);
@@ -219,7 +250,7 @@ void Editor::initActions()
     view->addAction(AhideToolBar);
 
     AautoSave = new QAction(QPixmap("icons/icons8-unchecked-checkbox-64.png"),
-        "Auto-save current file", this);
+                            "Auto-save current file", this);
     AautoSave->setCheckable(true);
     AautoSave->setChecked(false);
     connect(AautoSave, &QAction::triggered, this, &Editor::autoSave);
@@ -230,7 +261,7 @@ void Editor::initActions()
     connect(AsetFont, &QAction::triggered, this, &Editor::font);
     preferences->addAction(AsetFont);
 
-    AeditSettings = new QAction(QPixmap("icons/settings"), "&Settings", this);
+    AeditSettings = new QAction(QPixmap("icons/icons8-settings-64.png"), "&Settings", this);
     AeditSettings->setShortcut(tr("Ctrl+P"));
     connect(AeditSettings, &QAction::triggered, this, &Editor::openSettingsTab);
     preferences->addAction(AeditSettings);
@@ -275,7 +306,7 @@ void Editor::newF()
     informativeText.append("");
     int i = editAreas.size() - 1;
     tabs->addTab(editAreas[i], QPixmap("icons/icons8-file-64.png"),
-        QString("Untitled%1").arg(Editor::untitled_files_nb));
+                 QString("Untitled%1").arg(Editor::untitled_files_nb));
 }
 
 void Editor::open()
@@ -295,6 +326,10 @@ void Editor::open()
     currentTab->setPlainText(in.readAll());
     tabs->setTabText(index, QFileInfo(fileName).fileName());
     files[index] = fileName;
+    model->setRootPath(QFileInfo{fileName}.dir().absolutePath());
+    tr_view->setRootIndex(model->setRootPath(QFileInfo{fileName}.dir().absolutePath()));
+    wdDock->show();
+    tr_view->currentIndex();
 }
 
 void Editor::save()
@@ -323,7 +358,7 @@ void Editor::save()
     out << text;
     file.close();
     tabs->tabBar()->show();
-//    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
+    //    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
 }
 
 void Editor::saveAs()
@@ -344,7 +379,7 @@ void Editor::saveAs()
     out << text;
     file.close();
     tabs->tabBar()->show();
-//    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
+    //    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
 }
 
 void Editor::quit()
@@ -354,53 +389,71 @@ void Editor::quit()
 
 void Editor::cut()
 {
-    int index{tabs->currentIndex()};
-    auto *editArea{editAreas[index]};
-    editArea->cut();
+    if (tabs->currentWidget() != settings)
+    {
+        int index{tabs->currentIndex()};
+        auto *editArea{editAreas[index]};
+        editArea->cut();
+    }
 }
 
 void Editor::copy()
 {
-    int index{tabs->currentIndex()};
-    auto *editArea{editAreas[index]};
-    editArea->copy();
+    if (tabs->currentWidget() != settings)
+    {
+        int index{tabs->currentIndex()};
+        auto *editArea{editAreas[index]};
+        editArea->copy();
+    }
 }
 
 void Editor::paste()
 {
-    int index{tabs->currentIndex()};
-    auto *editArea{editAreas[index]};
-    editArea->paste();
+    if (tabs->currentWidget() != settings)
+    {
+        int index{tabs->currentIndex()};
+        auto *editArea{editAreas[index]};
+        editArea->paste();
+    }
 }
 
 void Editor::selectAll()
 {
-    int index{tabs->currentIndex()};
-    auto *editArea{editAreas[index]};
-    editArea->selectAll();
+    if (tabs->currentWidget() != settings)
+    {
+        int index{tabs->currentIndex()};
+        auto *editArea{editAreas[index]};
+        editArea->selectAll();
+    }
 }
 
 void Editor::undo()
 {
-    int index{tabs->currentIndex()};
-    auto *editArea{editAreas[index]};
-    editArea->undo();
+    if (tabs->currentWidget() != settings)
+    {
+        int index{tabs->currentIndex()};
+        auto *editArea{editAreas[index]};
+        editArea->undo();
+    }
 }
 
 void Editor::redo()
 {
-    int index{tabs->currentIndex()};
-    auto *editArea{editAreas[index]};
-    editArea->redo();
+    if (tabs->currentWidget() != settings)
+    {
+        int index{tabs->currentIndex()};
+        auto *editArea{editAreas[index]};
+        editArea->redo();
+    }
 }
 
 void Editor::font()
 {
     bool fontSelected;
-       QFont font = QFontDialog::getFont(&fontSelected, this);
-       if (fontSelected)
-           for (auto *editArea: editAreas)
-               editArea->setFont(font);
+    QFont font = QFontDialog::getFont(&fontSelected, this);
+    if (fontSelected)
+        for (auto *editArea: editAreas)
+            editArea->setFont(font);
 }
 
 void Editor::increaseFontSize()
@@ -457,7 +510,7 @@ void Editor::autoSave()
     {
         if (currentFile.isEmpty()) {
             QMessageBox::warning(this, "Auto Save", "The file need to be saved a first time before enabling autosave",
-                QMessageBox::Ok);
+                                 QMessageBox::Ok);
             AautoSave->setChecked(false);
             return;
         }
@@ -479,12 +532,13 @@ void Editor::openSettingsTab()
 {
     if (!isSettingsTabOpened)
     {
-//        settings = new QMainWindow(nullptr, Qt::Widget);
-        settings = new Settings;
+        //        settings = new QMainWindow(nullptr, Qt::Widget);
         tabs->addTab(settings , "Settings");
         tabs->setCurrentWidget(settings);
         isSettingsTabOpened = true;
     }
+    else
+        tabs->setCurrentWidget(settings);
 }
 
 void Editor::toggleCheckbox(QAction *action)
@@ -519,5 +573,5 @@ void Editor::timerEvent(QTimerEvent *event)
     QString text = editArea->toPlainText();
     out << text;
     file.close();
-//    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
+    //    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
 }
