@@ -20,68 +20,43 @@
 #include <QLabel>
 #include <QTextStream>
 #include <QDockWidget>
-#include <QFileSystemModel>
-#include <QHeaderView>
-#include <QTreeView>
 #include <QIcon>
 #include "codeedit.h"
 #include "editor.h"
 #include "settings.h"
 
 static int fontSize;
-// For counting the number untitled files opened
-int Editor::untitled_files_nb = 1;
+int Editor::untitled_files_nb = 1; // For naming new file("Untitled nb")
 
 Editor::Editor(QWidget *parent)
     : QMainWindow(parent)
 {
+    // General config
+    setWindowTitle("h-edit");
     settings = new Settings;
-    isSettingsTabOpened = false;
+    isSettingsTabOpened = false; // Track whether a tab is already opened for settings or not.
     fontSize = 14;
 
-    // General style
-    QFile file{"./themes/Ubuntu.qss"};
+    // Applying some style
+    QFile file{"./themes/MaterialDark.qss"};
     if (file.open(QFile::ReadOnly))
     {
         QString content{file.readAll()};
         qApp->setStyleSheet(content);
     }
-    //    QString style{
-    //        "QMainWindow { font-size: 12px; }"
-    //        "QMainWindow, QPlainTextEdit{ background: #002b36; color: #f5f5f5}"
-    //        "QMenu QAction:hover { background: #098890; }"
-    //    };
-    //    qApp->setStyleSheet(style);
     qApp->setFont(QFont("monospace"));
     connect(this, &Editor::checkboxToggled, this, &Editor::toggleCheckbox);
-    setWindowTitle("h-edit");
 
     //Tabs
     initTabWidget();
     // Menus
-    initMenu();
+    initMenuBar();
     // Actions
     initActions();
     // ToolBar
     initToolBar();
     // Status Bar
     initStatusBar();
-
-    model = new QFileSystemModel;
-    model->setReadOnly(false);
-//    model->setRootPath(QDir::homePath());
-    tr_view = new QTreeView;
-    tr_view->setModel(model);
-//    view->setRootIndex(model->setRootPath(QDir::homePath()));
-    tr_view->header()->hide();
-    tr_view->hideColumn(1);
-    tr_view->hideColumn(2);
-    tr_view->hideColumn(3);
-    wdDock = new QDockWidget;
-    wdDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
-    wdDock->setWidget(tr_view);
-    wdDock->hide();
-    this->addDockWidget(Qt::LeftDockWidgetArea, wdDock);
 }
 
 Editor::~Editor()
@@ -142,7 +117,7 @@ void Editor::initTabWidget()
     });
 }
 
-void Editor::initMenu()
+void Editor::initMenuBar()
 {
     menuBar()->setStyleSheet("font-size: 14px; color: #0f4851");
     file = menuBar()->addMenu("&File");
@@ -151,7 +126,7 @@ void Editor::initMenu()
     preferences = menuBar()->addMenu("&Preferences");
 }
 
-void Editor::initActions()
+void Editor::initFileMenuActions()
 {
     AnewFile = new QAction(QPixmap("icons/icons8-file-64.png"),
                            "&New File", this);
@@ -183,7 +158,10 @@ void Editor::initActions()
     connect(Aquit, &QAction::triggered, this, &Editor::quit);
     file->addSeparator();
     file->addAction(Aquit);
+}
 
+void Editor::initEditMenuActions()
+{
     Acut = new QAction(QPixmap("icons/icons8-cut-64.png"), "Cut", this);
     Acut->setShortcut(tr("Ctrl+X"));
     connect(Acut, &QAction::triggered, this, &Editor::cut);
@@ -216,11 +194,13 @@ void Editor::initActions()
     Aredo->setShortcut(tr("Ctrl+R"));
     connect(Aredo, &QAction::triggered, this, &Editor::redo);
     edit->addAction(Aredo);
+}
 
+void Editor::initViewMenuActions()
+{
     AincreaseFontSize = new QAction(QPixmap("icons/icons8-zoom-in-64.png"), "Zoom &in", this);
     AincreaseFontSize->setShortcut(tr("Ctrl++"));
     connect(AincreaseFontSize, &QAction::triggered, this, &Editor::increaseFontSize);
-    view->addSeparator();
     view->addAction(AincreaseFontSize);
 
     AdecreaseFontSize = new QAction(QPixmap("icons/icons8-zoom-out-64.png"), "Zoom &out", this);
@@ -239,6 +219,7 @@ void Editor::initActions()
     AhideStatusBar->setCheckable(true);
     AhideStatusBar->setChecked(false);
     connect(AhideStatusBar, &QAction::toggled, this, &Editor::hideStatusBar);
+        view->addSeparator();
     view->addAction(AhideStatusBar);
 
     AhideToolBar = new QAction(QPixmap("icons/icons8-unchecked-checkbox-64.png"),
@@ -248,7 +229,10 @@ void Editor::initActions()
     AhideToolBar->setChecked(false);
     connect(AhideToolBar, &QAction::toggled, this, &Editor::hideToolBar);
     view->addAction(AhideToolBar);
+}
 
+void Editor::initPreferencesMenuActions()
+{
     AautoSave = new QAction(QPixmap("icons/icons8-unchecked-checkbox-64.png"),
                             "Auto-save current file", this);
     AautoSave->setCheckable(true);
@@ -265,6 +249,14 @@ void Editor::initActions()
     AeditSettings->setShortcut(tr("Ctrl+P"));
     connect(AeditSettings, &QAction::triggered, this, &Editor::openSettingsTab);
     preferences->addAction(AeditSettings);
+}
+
+void Editor::initActions()
+{
+    initFileMenuActions();
+    initEditMenuActions();
+    initViewMenuActions();
+    initPreferencesMenuActions();
 }
 
 void Editor::initToolBar()

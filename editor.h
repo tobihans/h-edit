@@ -53,10 +53,15 @@ private slots:
     void toggleCheckbox(QAction *action);
 private:
     void initTabWidget();
-    void initMenu();
+    void initMenuBar();
+    void initFileMenuActions();
+    void initEditMenuActions();
+    void initViewMenuActions();
+    void initPreferencesMenuActions();
     void initActions();
     void initToolBar();
     void initStatusBar();
+    void initWorkingDir();
 
     // Menu
     QMenu *file;
