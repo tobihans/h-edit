@@ -24,6 +24,7 @@
 #include "codeedit.h"
 #include "editor.h"
 #include "settings.h"
+#include "workingdirwidget.h"
 
 static int fontSize;
 int Editor::untitled_files_nb = 1; // For naming new file("Untitled nb")
@@ -57,6 +58,14 @@ Editor::Editor(QWidget *parent)
     initToolBar();
     // Status Bar
     initStatusBar();
+
+    // test
+    auto *wd = new WorkingDirWidget(QDir::homePath());
+    wd->attachModalsTo(this);
+    auto *dock = new QDockWidget;
+    dock->setWidget(wd);
+    dock->setFeatures(QDockWidget::NoDockWidgetFeatures);
+    this->addDockWidget(Qt::LeftDockWidgetArea, dock);
 }
 
 Editor::~Editor()

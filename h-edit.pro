@@ -13,13 +13,15 @@ SOURCES += \
     main.cpp \
     editor.cpp \
     settings.cpp \
-    settingsmodel.cpp
+    settingsmodel.cpp \
+    workingdirwidget.cpp
 
 HEADERS += \
     codeedit.h \
     editor.h \
     settings.h \
-    settingsmodel.h
+    settingsmodel.h \
+    workingdirwidget.h
 
 FORMS +=
 
