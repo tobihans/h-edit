@@ -14,6 +14,7 @@ SOURCES += \
     editor.cpp \
     settings.cpp \
     settingsmodel.cpp \
+    window.cpp \
     workingdirwidget.cpp
 
 HEADERS += \
@@ -21,6 +22,7 @@ HEADERS += \
     editor.h \
     settings.h \
     settingsmodel.h \
+    window.h \
     workingdirwidget.h
 
 FORMS +=

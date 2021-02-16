@@ -71,8 +71,8 @@ signals:
     void openFile(QString path);
     void fileDeleted(QString path);
     void fileRenamed(QString oldPath, QString newPath);
-    void FolderDeleted(QString path);
-    void FolderRenamed(QString oldPath, QString newPath);
+    void folderDeleted(QString path);
+    void folderRenamed(QString oldPath, QString newPath);
 };
 
 #endif // WORKINGDIRWIDGET_H

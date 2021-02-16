@@ -37,7 +37,6 @@ Editor::Editor(QWidget *parent)
     settings = new Settings;
     isSettingsTabOpened = false; // Track whether a tab is already opened for settings or not.
     fontSize = 14;
-
     // Applying some style
     QFile file{"./themes/MaterialDark.qss"};
     if (file.open(QFile::ReadOnly))
@@ -58,14 +57,9 @@ Editor::Editor(QWidget *parent)
     initToolBar();
     // Status Bar
     initStatusBar();
-
-    // test
-    auto *wd = new WorkingDirWidget(QDir::homePath());
-    wd->attachModalsTo(this);
-    auto *dock = new QDockWidget;
-    dock->setWidget(wd);
-    dock->setFeatures(QDockWidget::NoDockWidgetFeatures);
-    this->addDockWidget(Qt::LeftDockWidgetArea, dock);
+    // init Working directories widget
+    initWorkingDir();
+//    qApp->setStyleSheet("QTabWidget#tabwidget {background-color: #ffa500; font-family: cursive;} #menubar{background-color: crimson;} #toolbar {background-color: darkblue;}");
 }
 
 Editor::~Editor()
@@ -103,6 +97,7 @@ Editor::~Editor()
 void Editor::initTabWidget()
 {
     tabs = new QTabWidget;
+    tabs->setObjectName("tabwidget");
     tabs->setDocumentMode(true);
     tabs->setTabsClosable(true);
     this->setCentralWidget(tabs);
@@ -120,7 +115,8 @@ void Editor::initTabWidget()
             this->tabs->removeTab(i);
         }
         if (this->tabs->count() == 1)
-            qApp->quit();
+//            qApp->quit();
+            this->close();
         files.removeAt(i);
         tabs->removeTab(i);
     });
@@ -129,10 +125,12 @@ void Editor::initTabWidget()
 void Editor::initMenuBar()
 {
     menuBar()->setStyleSheet("font-size: 14px; color: #0f4851");
+    menuBar()->setObjectName("menubar");
     file = menuBar()->addMenu("&File");
     edit = menuBar()->addMenu("&Edit");
     view = menuBar()->addMenu("&View");
     preferences = menuBar()->addMenu("&Preferences");
+    help = menuBar()->addMenu("Help");
 }
 
 void Editor::initFileMenuActions()
@@ -149,10 +147,24 @@ void Editor::initFileMenuActions()
     connect(AopenFile, &QAction::triggered, this, &Editor::open);
     file->addAction(AopenFile);
 
+    newWindow = new QAction("New Window");
+    file->addAction(newWindow);
+    connect(newWindow, &QAction::triggered, this, [=](){
+        emit newWindowRequest();
+    });
+
+    AaddProjectFolder = new QAction("Add project folder");
+    file->addSeparator();
+    file->addAction(AaddProjectFolder);
+    connect(AaddProjectFolder, &QAction::triggered, this, [=](){
+       workingDirWidget->addprojectFolderRequested();
+    });
+
     AsaveFile = new QAction(QPixmap("icons/icons8-save-64.png"),
                             "Save File", this);
     AsaveFile->setShortcut(tr("Ctrl+S"));
     connect(AsaveFile, &QAction::triggered, this, &Editor::save);
+    file->addSeparator();
     file->addAction(AsaveFile);
 
     AsaveFileAs = new QAction(QPixmap("icons/icons8-save-as-64.png"),
@@ -260,17 +272,26 @@ void Editor::initPreferencesMenuActions()
     preferences->addAction(AeditSettings);
 }
 
+void Editor::initHelpMenuActions()
+{
+    AviewDocumentation = new QAction("Documentation");
+    help->addAction(AviewDocumentation);
+    connect(AviewDocumentation, &QAction::triggered, this, &Editor::viewDocumentation);
+}
+
 void Editor::initActions()
 {
     initFileMenuActions();
     initEditMenuActions();
     initViewMenuActions();
     initPreferencesMenuActions();
+    initHelpMenuActions();
 }
 
 void Editor::initToolBar()
 {
     toolbar = addToolBar("Main Toolbar");
+    toolbar->setObjectName("toolbar");
     toolbar->setAllowedAreas(Qt::TopToolBarArea | Qt::RightToolBarArea);
     toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
     toolbar->addAction(AnewFile);
@@ -293,10 +314,23 @@ void Editor::initToolBar()
 
 void Editor::initStatusBar()
 {
+    statusBar()->setObjectName("status-bar");
     statusBar()->setStyleSheet("background: #0f4851; color: #f5f5f5; font-size: 14px;");
     statusBarText = new QLabel;
     statusBarText->setAlignment(Qt::AlignLeft);
     statusBar()->addPermanentWidget(statusBarText);
+}
+
+void Editor::initWorkingDir()
+{
+    workingDirDockWidget = new QDockWidget;
+    workingDirDockWidget->setFeatures(QDockWidget::NoDockWidgetFeatures);
+    workingDirDockWidget->setTitleBarWidget(new QWidget());
+    workingDirWidget = new WorkingDirWidget(QDir::homePath());
+    workingDirWidget->attachModalsTo(this);
+    workingDirDockWidget->setWidget(workingDirWidget);
+    this->addDockWidget(Qt::LeftDockWidgetArea, workingDirDockWidget);
+//    workingDirDockWidget->hide();
 }
 
 void Editor::newF()
@@ -327,10 +361,6 @@ void Editor::open()
     currentTab->setPlainText(in.readAll());
     tabs->setTabText(index, QFileInfo(fileName).fileName());
     files[index] = fileName;
-    model->setRootPath(QFileInfo{fileName}.dir().absolutePath());
-    tr_view->setRootIndex(model->setRootPath(QFileInfo{fileName}.dir().absolutePath()));
-    wdDock->show();
-    tr_view->currentIndex();
 }
 
 void Editor::save()
@@ -385,7 +415,7 @@ void Editor::saveAs()
 
 void Editor::quit()
 {
-    qApp->quit();
+    this->close();
 }
 
 void Editor::cut()
@@ -540,6 +570,11 @@ void Editor::openSettingsTab()
     }
     else
         tabs->setCurrentWidget(settings);
+}
+
+void Editor::viewDocumentation()
+{
+    QMessageBox::information(this, "Help", "No help");
 }
 
 void Editor::toggleCheckbox(QAction *action)

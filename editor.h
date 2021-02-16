@@ -1,6 +1,7 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
+#include "workingdirwidget.h"
 #include <QMainWindow>
 #include <QPlainTextEdit>
 #include <QLabel>
@@ -50,7 +51,9 @@ private slots:
     void autoSave();
     void closeTab();
     void openSettingsTab();
+    void viewDocumentation();
     void toggleCheckbox(QAction *action);
+
 private:
     void initTabWidget();
     void initMenuBar();
@@ -58,6 +61,7 @@ private:
     void initEditMenuActions();
     void initViewMenuActions();
     void initPreferencesMenuActions();
+    void initHelpMenuActions();
     void initActions();
     void initToolBar();
     void initStatusBar();
@@ -68,12 +72,15 @@ private:
     QMenu *edit;
     QMenu *view;
     QMenu *preferences;
+    QMenu *help;
 
     QToolBar *toolbar;
 
     // Actions
     QAction *AnewFile;
     QAction *AopenFile;
+    QAction *newWindow;
+    QAction *AaddProjectFolder;
     QAction *AsaveFile;
     QAction *AsaveFileAs;
     QAction *Aquit;
@@ -91,6 +98,7 @@ private:
     QAction *AoriginalFontSize;
     QAction *AincreaseFontSize;
     QAction *AdecreaseFontSize;
+    QAction *AviewDocumentation;
 
     // Multiple files
     QTabWidget *tabs;
@@ -104,13 +112,14 @@ private:
     bool isSettingsTabOpened;
     QWidget *settings;
 
-    //Working dir widgets
-    QDockWidget *wdDock;
-    QFileSystemModel *model;
-    QTreeView *tr_view;
+    //Working dirs items
+    QDockWidget *workingDirDockWidget;
+    WorkingDirWidget *workingDirWidget;
+
 
 signals:
     // To set the right icon for checkable actions
     void checkboxToggled(QAction *action);
+    void newWindowRequest();
 };
 #endif // EDITOR_H

@@ -1,4 +1,5 @@
 #include "workingdirwidget.h"
+#include <QFont>
 #include <QInputDialog>
 #include <QFileDialog>
 #include <QFile>
@@ -12,10 +13,14 @@
 #include <QTreeWidgetItem>
 #include <QtDebug>
 
-
 WorkingDirWidget::WorkingDirWidget(QWidget *parent) :
-    QTreeWidget(parent)
+    QTreeWidget(parent), modalsParent(nullptr)
 {
+
+    // General style
+    QFont font("monospace");
+    font.setPixelSize(14.75);
+    this->setFont(font);
     this->setContextMenuPolicy(Qt::CustomContextMenu);
     this->setColumnCount(1);
     auto *header = this->header();
@@ -75,7 +80,10 @@ void WorkingDirWidget::attachModalsTo(QWidget *widget)
 
 void WorkingDirWidget::initContextMenu()
 {
+    QFont font("monospace");
+    font.setPixelSize(14.75);
     contextMenu = new QMenu(this);
+    contextMenu->setFont(font);
     initContextMenuActions();
 }
 
@@ -282,6 +290,7 @@ void WorkingDirWidget::renameItemRequested()
             {
                 item->setText(0, newName);
                 absolutePaths[index] = newPath;
+                emit folderRenamed(old, newName);
             }
             else
                 this->warn("Warning", tr("Unable to rename <b>") + this->itemAbsPath(item) + "</b> to <b>" + newPath + "</b>");
@@ -293,7 +302,10 @@ void WorkingDirWidget::renameItemRequested()
             QString old{this->itemAbsPath(item)}, newPath{this->itemAbsPath(item->parent()) + "/" + newName};
             bool done = QFile::rename(old, newPath);
             if (done)
+            {
                 item->setText(0, newName);
+                emit fileRenamed(old, newName);
+            }
             else
                 this->warn("Warning", tr("Unable to rename <b>") + old + "</b> to <b>" + newPath + "</b>");
         }
@@ -302,7 +314,10 @@ void WorkingDirWidget::renameItemRequested()
             QString old{this->itemAbsPath(item)}, newPath{this->itemAbsPath(item->parent()) + "/" + newName};
             bool done = QDir::home().rename(old, newPath);
             if (done)
+            {
                 item->setText(0, newName);
+                emit folderRenamed(old, newName);
+            }
             else
                 this->warn("Warning", tr("Unable to rename <b>") + old + "</b> to <b>" + newPath + "</b>");
         }
@@ -316,15 +331,18 @@ void WorkingDirWidget::deleteItemRequested()
         return;
     if (item->childIndicatorPolicy() == QTreeWidgetItem::ShowIndicator)
     {
-        item->setExpanded(false); // Ensure that dir is removed from monitored dirs if it's one.
+        item->setExpanded(false); // Ensure that the dir is removed from monitored dirs if it's one.
         QString path{this->itemAbsPath(item)};
         QDir folder{path};
         bool done = folder.removeRecursively();
         if (done)
         {
             this->clearItem(item);
+            auto *parent = item->parent();
             item->parent()->removeChild(item);
             delete item;
+            this->setCurrentItem(parent);
+            emit folderDeleted(path);
         }
         else
             this->warn("Warning", "Unable to remove folder <b>" + folder.absolutePath() + "</b>");
@@ -335,8 +353,11 @@ void WorkingDirWidget::deleteItemRequested()
         bool done = QFile::remove(filePath);
         if (done)
         {
+            auto *parent = item->parent();
             item->parent()->removeChild(item);
             delete item;
+            this->setCurrentItem(parent);
+            emit fileDeleted(filePath);
         }
         else
             this->warn("Warning", "Unable to remove file <b>\"" + filePath + "\"</b>");
@@ -350,7 +371,7 @@ void WorkingDirWidget::newFolderRequested()
     if (!item)
         return;
     if (item->childIndicatorPolicy() == QTreeWidgetItem::DontShowIndicator)
-        item = item->parent();
+        item = item->parent(); //Ensure that the pathis always a folder path
     QString newName = QInputDialog::getText(modalsParent, tr("<b>New Folder</b>"), tr("<i>Enter the name of the new folder below: </i>"));
     if (!newName.isEmpty())
     {
