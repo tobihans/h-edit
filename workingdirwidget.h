@@ -37,6 +37,7 @@ private slots:
     void stopMonitoringFolder(QTreeWidgetItem *folder);
 
 private:
+    void init();
     void initContextMenu();
     void initContextMenuActions();
     void connectContextMenuActions();

@@ -20,7 +20,6 @@ class Editor : public QMainWindow
     Q_OBJECT
 
 public:
-    static int untitled_files_nb;
     static int const MIN_FONT_SIZE = 7;
     static int const DEFAULT_FONT_SIZE = 14;
     static int const MAX_FONT_SIZE = 24;
@@ -55,6 +54,7 @@ private slots:
     void toggleCheckbox(QAction *action);
 
 private:
+    void init();
     void initTabWidget();
     void initMenuBar();
     void initFileMenuActions();
@@ -66,6 +66,9 @@ private:
     void initToolBar();
     void initStatusBar();
     void initWorkingDir();
+    void openPlainTextFile(QString filePath);
+
+    int untitled_files_nb;
 
     // Menu
     QMenu *file;

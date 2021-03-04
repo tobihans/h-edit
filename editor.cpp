@@ -27,39 +27,10 @@
 #include "workingdirwidget.h"
 
 static int fontSize;
-int Editor::untitled_files_nb = 1; // For naming new file("Untitled nb")
-
 Editor::Editor(QWidget *parent)
     : QMainWindow(parent)
 {
-    // General config
-    setWindowTitle("h-edit");
-    settings = new Settings;
-    isSettingsTabOpened = false; // Track whether a tab is already opened for settings or not.
-    fontSize = 14;
-    // Applying some style
-    QFile file{"./themes/MaterialDark.qss"};
-    if (file.open(QFile::ReadOnly))
-    {
-        QString content{file.readAll()};
-        qApp->setStyleSheet(content);
-    }
-    qApp->setFont(QFont("monospace"));
-    connect(this, &Editor::checkboxToggled, this, &Editor::toggleCheckbox);
-
-    //Tabs
-    initTabWidget();
-    // Menus
-    initMenuBar();
-    // Actions
-    initActions();
-    // ToolBar
-    initToolBar();
-    // Status Bar
-    initStatusBar();
-    // init Working directories widget
-    initWorkingDir();
-//    qApp->setStyleSheet("QTabWidget#tabwidget {background-color: #ffa500; font-family: cursive;} #menubar{background-color: crimson;} #toolbar {background-color: darkblue;}");
+    init();
 }
 
 Editor::~Editor()
@@ -94,10 +65,45 @@ Editor::~Editor()
         delete editArea;
 }
 
+void Editor::init() {
+    // General config
+    untitled_files_nb = 1;
+    setWindowTitle("h-edit");
+    settings = new Settings;
+    isSettingsTabOpened = false; // Track whether a tab is already opened for settings or not.
+    fontSize = 14;
+    // Applying some style
+//    QFile file{"./themes/MaterialDark.qss"};
+//    if (file.open(QFile::ReadOnly))
+//    {
+//        QString content{file.readAll()};
+//        qApp->setStyleSheet(content);
+//    }
+    qApp->setFont(QFont("monospace"));
+    connect(this, &Editor::checkboxToggled, this, &Editor::toggleCheckbox);
+
+    //Tabs
+    initTabWidget();
+    // Menus
+    initMenuBar();
+    // Actions
+    initActions();
+    // ToolBar
+    initToolBar();
+    // Status Bar
+    initStatusBar();
+    // init Working directories widget
+    initWorkingDir();
+//    qApp->setStyleSheet("QTabWidget#tabwidget {background-color: #ffa500; font-family: cursive;} #menubar{background-color: crimson;} #toolbar {background-color: darkblue;}");
+}
+
 void Editor::initTabWidget()
 {
+    QFont mono("monospace");
+    mono.setPixelSize(14);
     tabs = new QTabWidget;
     tabs->setObjectName("tabwidget");
+    tabs->setFont(mono);
     tabs->setDocumentMode(true);
     tabs->setTabsClosable(true);
     this->setCentralWidget(tabs);
@@ -333,6 +339,11 @@ void Editor::initWorkingDir()
 //    workingDirDockWidget->hide();
 }
 
+void Editor::openPlainTextFile(QString filePath)
+{
+
+}
+
 void Editor::newF()
 {
     Editor::untitled_files_nb++;
@@ -341,7 +352,7 @@ void Editor::newF()
     informativeText.append("");
     int i = editAreas.size() - 1;
     tabs->addTab(editAreas[i], QPixmap("icons/icons8-file-64.png"),
-                 QString("Untitled%1").arg(Editor::untitled_files_nb));
+                 QString("Untitled %1").arg(untitled_files_nb));
 }
 
 void Editor::open()

@@ -16,19 +16,7 @@
 WorkingDirWidget::WorkingDirWidget(QWidget *parent) :
     QTreeWidget(parent), modalsParent(nullptr)
 {
-
-    // General style
-    QFont font("monospace");
-    font.setPixelSize(14.75);
-    this->setFont(font);
-    this->setContextMenuPolicy(Qt::CustomContextMenu);
-    this->setColumnCount(1);
-    auto *header = this->header();
-    header->setSectionResizeMode(QHeaderView::Stretch);
-    header->hide();
-    initContextMenu();
-    makeConnections();
-    connectToMonitoringEvents();
+    init();
 }
 
 WorkingDirWidget::WorkingDirWidget(QString directory, QWidget *parent) :
@@ -45,7 +33,6 @@ WorkingDirWidget::WorkingDirWidget(QStringList directories, QWidget *parent) :
 
 WorkingDirWidget::~WorkingDirWidget()
 {
-    qDebug() << monitoredDirsWidgets;
     delete addProjectFolder;
     delete removeProjectFolder;
     delete newFolder;
@@ -53,6 +40,21 @@ WorkingDirWidget::~WorkingDirWidget()
     delete deleteItem;
     delete renameItem;
     delete contextMenu;
+}
+
+void WorkingDirWidget::init() {
+    // General style
+    QFont font("monospace");
+    font.setPixelSize(14);
+    this->setFont(font);
+    this->setContextMenuPolicy(Qt::CustomContextMenu);
+    this->setColumnCount(1);
+    auto *header = this->header();
+    header->setSectionResizeMode(QHeaderView::Stretch);
+    header->hide();
+    initContextMenu();
+    makeConnections();
+    connectToMonitoringEvents();
 }
 
 void WorkingDirWidget::addDirectory(QString directory)
@@ -81,7 +83,7 @@ void WorkingDirWidget::attachModalsTo(QWidget *widget)
 void WorkingDirWidget::initContextMenu()
 {
     QFont font("monospace");
-    font.setPixelSize(14.75);
+    font.setPixelSize(14);
     contextMenu = new QMenu(this);
     contextMenu->setFont(font);
     initContextMenuActions();
