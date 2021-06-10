@@ -169,6 +169,7 @@ void Editor::initFileMenuActions()
     file->addAction(AaddProjectFolder);
     connect(AaddProjectFolder, &QAction::triggered, this, [=](){
         workingDirWidget->addprojectFolderRequested();
+        this->workingDirDockWidget->show();
     });
 
     AsaveFile = new QAction(QPixmap(":/icons/icons8-save-64.png"),
@@ -361,11 +362,11 @@ void Editor::initWorkingDir()
     workingDirDockWidget = new QDockWidget;
     workingDirDockWidget->setFeatures(QDockWidget::NoDockWidgetFeatures);
     workingDirDockWidget->setTitleBarWidget(new QWidget());
-    workingDirWidget = new WorkingDirWidget(QDir::homePath());
+    workingDirWidget = new WorkingDirWidget(/**QDir::homePath()**/);
     workingDirWidget->attachModalsTo(this);
     workingDirDockWidget->setWidget(workingDirWidget);
     this->addDockWidget(Qt::LeftDockWidgetArea, workingDirDockWidget);
-    //    workingDirDockWidget->hide();
+    workingDirDockWidget->hide();
     connectToWorkingDirSignals();
 }
 

@@ -275,6 +275,7 @@ void WorkingDirWidget::addprojectFolderRequested()
     QString folder = QFileDialog::getExistingDirectory(modalsParent, QString("Open Folder"), QDir::home().absolutePath());
     if (!folder.isEmpty() && !absolutePaths.contains(folder))
         this->addDirectory(folder);
+    this->show();
 }
 
 /**
