@@ -20,5 +20,6 @@
         <file>icons/icons8-undo-64.png</file>
         <file>icons/icons8-zoom-in-64.png</file>
         <file>icons/icons8-zoom-out-64.png</file>
+        <file>icons/icons8-new-window-64.png</file>
     </qresource>
 </RCC>

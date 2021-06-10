@@ -21,7 +21,7 @@ Settings::Settings() :
     tabStopChoice = new QLineEdit;
     tabStopChoice->setPlaceholderText("Default: 2");
     themeChoice = new QComboBox;
-    for (auto theme: SettingsModel::themes())
+    for (const auto &theme: SettingsModel::themes())
         themeChoice->addItem(theme);
     fontSizeChoice = new QLineEdit;
     fontSizeChoice->setPlaceholderText("Default: 14");

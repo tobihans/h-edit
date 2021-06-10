@@ -66,7 +66,8 @@ private:
     void initToolBar();
     void initStatusBar();
     void initWorkingDir();
-    void openPlainTextFile(QString filePath);
+    void connectToWorkingDirSignals();
+    void openFileFromProjectWidget(QString filePath);
 
     int untitled_files_nb;
 

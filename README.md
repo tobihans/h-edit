@@ -8,5 +8,3 @@ qmake -project
 qmake
 make
 ```
-If you open it in Qt Creator, don't forget to copy the icons folder
-in the output directory.

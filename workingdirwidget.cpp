@@ -42,6 +42,10 @@ WorkingDirWidget::~WorkingDirWidget()
     delete contextMenu;
 }
 
+/**
+ * @brief WorkingDirWidget::init
+ * Initialize components
+ */
 void WorkingDirWidget::init() {
     // General style
     QFont font("monospace");
@@ -57,6 +61,10 @@ void WorkingDirWidget::init() {
     connectToMonitoringEvents();
 }
 
+/**
+ * @brief WorkingDirWidget::addDirectory
+ * @param directory, the path to directory to add
+ */
 void WorkingDirWidget::addDirectory(QString directory)
 {
     QDir dir{directory};
@@ -68,18 +76,31 @@ void WorkingDirWidget::addDirectory(QString directory)
     this->setCurrentItem(topLevelItem);
 }
 
+/**
+ * @brief WorkingDirWidget::addDirectories
+ * Add a list of directories
+ * @param directories
+ */
 void WorkingDirWidget::addDirectories(QStringList directories)
 {
-    for (auto dir : directories)
+    for (const auto &dir : directories)
         this->addDirectory(dir);
 }
 
-
+/**
+ * @brief WorkingDirWidget::attachModalsTo
+ * Set Parent for modals shown
+ * @param widget
+ */
 void WorkingDirWidget::attachModalsTo(QWidget *widget)
 {
     this->modalsParent = widget;
 }
 
+/**
+ * @brief WorkingDirWidget::initContextMenu
+ * Context Menu for basic fs operations
+ */
 void WorkingDirWidget::initContextMenu()
 {
     QFont font("monospace");
@@ -89,6 +110,10 @@ void WorkingDirWidget::initContextMenu()
     initContextMenuActions();
 }
 
+/**
+ * @brief WorkingDirWidget::initContextMenuActions
+ * Initaliaze actions for the context Menu
+ */
 void WorkingDirWidget::initContextMenuActions()
 {
     addProjectFolder = new QAction(tr("&Add Project Folder"));
@@ -107,6 +132,10 @@ void WorkingDirWidget::initContextMenuActions()
     connectContextMenuActions();
 }
 
+/**
+ * @brief WorkingDirWidget::connectContextMenuActions
+ * Connect context menu actions's signal to their respective solts
+ */
 void WorkingDirWidget::connectContextMenuActions()
 {
     connect(addProjectFolder, &QAction::triggered,
@@ -124,6 +153,10 @@ void WorkingDirWidget::connectContextMenuActions()
     connect(open, &QAction::triggered, this, &WorkingDirWidget::openFileRequested);
 }
 
+/**
+ * @brief WorkingDirWidget::makeConnections
+ * Connecting to some QTreeWidget signals
+ */
 void WorkingDirWidget::makeConnections()
 {
     // For folders
@@ -139,6 +172,12 @@ void WorkingDirWidget::makeConnections()
             this, &WorkingDirWidget::showContextMenu);
 }
 
+/**
+ * @brief WorkingDirWidget::itemAbsPath,
+ * absolute path for an element in the tree
+ * @param item
+ * @return QString, the absolute path in the filesystem
+ */
 QString WorkingDirWidget::itemAbsPath(QTreeWidgetItem *item)
 {
     if(item->parent() == nullptr) // TopLevelItem
@@ -155,11 +194,16 @@ QString WorkingDirWidget::itemAbsPath(QTreeWidgetItem *item)
     return path.remove(path.length() - 1, 1); // Remove the "/" at the end of the path
 }
 
+/**
+ * @brief WorkingDirWidget::insertFolders
+ * add folders for an item
+ * @param item
+ */
 void WorkingDirWidget::insertFolders(QTreeWidgetItem *item)
 {
     QDir working_dir{this->itemAbsPath(item)};
     auto dirs = working_dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
-    for (auto dir: dirs)
+    for (const auto &dir: dirs)
     {
         auto *item_child = new QTreeWidgetItem(QStringList(dir.fileName()));
         item_child->setExpanded(true);
@@ -168,11 +212,16 @@ void WorkingDirWidget::insertFolders(QTreeWidgetItem *item)
     }
 }
 
+/**
+ * @brief WorkingDirWidget::insertFiles
+ * add files to an item
+ * @param item
+ */
 void WorkingDirWidget::insertFiles(QTreeWidgetItem *item)
 {
     QDir working_dir{this->itemAbsPath(item)};
     auto files = working_dir.entryInfoList(QDir::Files, QDir::Name);
-    for (auto file: files)
+    for (const auto &file: files)
     {
         auto *item_child = new QTreeWidgetItem(QStringList(file.fileName()));
         item_child->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicator);
@@ -180,6 +229,11 @@ void WorkingDirWidget::insertFiles(QTreeWidgetItem *item)
     }
 }
 
+/**
+ * @brief WorkingDirWidget::clearItem
+ * clear content for a folder item.
+ * @param item
+ */
 void WorkingDirWidget::clearItem(QTreeWidgetItem *item)
 {
     auto children = item->takeChildren();
@@ -187,6 +241,10 @@ void WorkingDirWidget::clearItem(QTreeWidgetItem *item)
         delete child;
 }
 
+/**
+ * @brief WorkingDirWidget::connectToMonitoringEvents
+ * Connect to filesystem watcher signals
+ */
 void WorkingDirWidget::connectToMonitoringEvents()
 {
     connect(&monitor, &QFileSystemWatcher::directoryChanged, this, [=](QString path){
@@ -197,11 +255,21 @@ void WorkingDirWidget::connectToMonitoringEvents()
     });
 }
 
+/**
+ * @brief WorkingDirWidget::warn
+ * Show warning msg for the user when unusual things happen
+ * @param title
+ * @param msg
+ */
 void WorkingDirWidget::warn(QString title, QString msg)
 {
     QMessageBox::warning(modalsParent, title, msg);
 }
 
+/**
+ * @brief WorkingDirWidget::addprojectFolderRequested
+ * Public slot to add new topLevelItem to the Widget
+ */
 void WorkingDirWidget::addprojectFolderRequested()
 {
     QString folder = QFileDialog::getExistingDirectory(modalsParent, QString("Open Folder"), QDir::home().absolutePath());
@@ -209,6 +277,10 @@ void WorkingDirWidget::addprojectFolderRequested()
         this->addDirectory(folder);
 }
 
+/**
+ * @brief WorkingDirWidget::removeprojectFolderRequested
+ * Public slot to remove a topLevelItem
+ */
 void WorkingDirWidget::removeprojectFolderRequested()
 {
     auto *item = this->currentItem();
@@ -222,6 +294,11 @@ void WorkingDirWidget::removeprojectFolderRequested()
     topLevelItem = nullptr;
 }
 
+/**
+ * @brief WorkingDirWidget::getTopLevelParent
+ * @param item
+ * @return QTreeWidgetItem*, a pointer to the desired item
+ */
 QTreeWidgetItem* WorkingDirWidget::getTopLevelParent(QTreeWidgetItem *item)
 {
     int index = this->indexOfTopLevelItem(item);
@@ -233,6 +310,11 @@ QTreeWidgetItem* WorkingDirWidget::getTopLevelParent(QTreeWidgetItem *item)
     return item;
 }
 
+/**
+ * @brief WorkingDirWidget::getParentPathForTopLevelItem
+ * @param item
+ * @return QString, the absolute path for the parent item
+ */
 QString WorkingDirWidget::getParentPathForTopLevelItem(QTreeWidgetItem *item)
 {
     int index{this->indexOfTopLevelItem(item)};
@@ -247,15 +329,26 @@ QString WorkingDirWidget::getParentPathForTopLevelItem(QTreeWidgetItem *item)
     return "";
 }
 
+/**
+ * @brief WorkingDirWidget::showContextMenu
+ * @param pos
+ */
 void WorkingDirWidget::showContextMenu(const QPoint& pos)
 {
     contextMenu->exec(this->mapToGlobal(QPoint(pos)));
 }
 
+/**
+ * @brief WorkingDirWidget::showFolderContent,
+ * Show the content of a folder item
+ * @param item
+ */
 void WorkingDirWidget::showFolderContent(QTreeWidgetItem *item)
 {
+    // File Items don't have indicators as they don't have children
     if(item->childIndicatorPolicy() == QTreeWidgetItem::DontShowIndicator)
         return;
+    // FOr folders, we reload the children from fs, maybe there is some changes
     if (item->childCount() != 0)
         this->clearItem(item);
     this->insertFolders(item);
@@ -264,15 +357,28 @@ void WorkingDirWidget::showFolderContent(QTreeWidgetItem *item)
     monitoredDirsWidgets[this->itemAbsPath(item)] = item;
 }
 
+/**
+ * @brief WorkingDirWidget::openFileRequested
+ * Slot
+ */
 void WorkingDirWidget::openFileRequested()
 {
     auto *item = this->currentItem();
     if (!item)
         return;
+    // Emit signal for opening this file in the editor
     if (item->childIndicatorPolicy() == QTreeWidgetItem::DontShowIndicator)
         emit openFile(this->itemAbsPath(item));
+    else
+        // Item is a folder
+        // Expanding item trigger events and its content is shown
+        item->setExpanded(true);
 }
 
+/**
+ * @brief WorkingDirWidget::renameItemRequested
+ * Slot for the fileRenamed Signal
+ */
 void WorkingDirWidget::renameItemRequested()
 {
     auto *item = this->currentItem();
@@ -326,6 +432,10 @@ void WorkingDirWidget::renameItemRequested()
     }
 }
 
+/**
+ * @brief WorkingDirWidget::deleteItemRequested
+ * Slot
+ */
 void WorkingDirWidget::deleteItemRequested()
 {
     auto *item = this->currentItem();
@@ -366,6 +476,10 @@ void WorkingDirWidget::deleteItemRequested()
     }
 }
 
+/**
+ * @brief WorkingDirWidget::newFolderRequested
+ * Slot
+ */
 void WorkingDirWidget::newFolderRequested()
 {
     // Get the folder
@@ -384,6 +498,10 @@ void WorkingDirWidget::newFolderRequested()
     }
 }
 
+/**
+ * @brief WorkingDirWidget::newFileRequested
+ * Slot
+ */
 void WorkingDirWidget::newFileRequested()
 {
     // Get the folder
@@ -431,6 +549,11 @@ void WorkingDirWidget::newFileRequested()
     }
 }
 
+/**
+ * @brief WorkingDirWidget::stopMonitoringFolder
+ * @param folder
+ * Slot
+ */
 void WorkingDirWidget::stopMonitoringFolder(QTreeWidgetItem *folder)
 {
     monitor.removePath(this->itemAbsPath(folder));

@@ -21,6 +21,7 @@
 #include <QTextStream>
 #include <QDockWidget>
 #include <QIcon>
+#include <QKeySequence>
 #include "codeedit.h"
 #include "editor.h"
 #include "settings.h"
@@ -61,10 +62,13 @@ Editor::~Editor()
     delete AdecreaseFontSize;
     delete statusBarText;
     // Delete Widgets for tab pages
-    for (auto *editArea: editAreas)
+    for (auto *editArea: qAsConst(editAreas))
         delete editArea;
 }
 
+/**
+ * @brief Editor::init
+ */
 void Editor::init() {
     // General config
     untitled_files_nb = 1;
@@ -72,13 +76,6 @@ void Editor::init() {
     settings = new Settings;
     isSettingsTabOpened = false; // Track whether a tab is already opened for settings or not.
     fontSize = 14;
-    // Applying some style
-//    QFile file{"./themes/MaterialDark.qss"};
-//    if (file.open(QFile::ReadOnly))
-//    {
-//        QString content{file.readAll()};
-//        qApp->setStyleSheet(content);
-//    }
     qApp->setFont(QFont("monospace"));
     connect(this, &Editor::checkboxToggled, this, &Editor::toggleCheckbox);
 
@@ -94,9 +91,11 @@ void Editor::init() {
     initStatusBar();
     // init Working directories widget
     initWorkingDir();
-//    qApp->setStyleSheet("QTabWidget#tabwidget {background-color: #ffa500; font-family: cursive;} #menubar{background-color: crimson;} #toolbar {background-color: darkblue;}");
 }
 
+/**
+ * @brief Editor::initTabWidget
+ */
 void Editor::initTabWidget()
 {
     QFont mono("monospace");
@@ -121,13 +120,15 @@ void Editor::initTabWidget()
             this->tabs->removeTab(i);
         }
         if (this->tabs->count() == 1)
-//            qApp->quit();
             this->close();
         files.removeAt(i);
         tabs->removeTab(i);
     });
 }
 
+/**
+ * @brief Editor::initMenuBar
+ */
 void Editor::initMenuBar()
 {
     menuBar()->setStyleSheet("font-size: 14px; color: #0f4851");
@@ -139,21 +140,25 @@ void Editor::initMenuBar()
     help = menuBar()->addMenu("Help");
 }
 
+/**
+ * @brief Editor::initFileMenuActions
+ */
 void Editor::initFileMenuActions()
 {
     AnewFile = new QAction(QPixmap(":/icons/icons8-file-64.png"),
                            "&New File", this);
-    AnewFile->setShortcut(tr("Ctrl+N"));
+    AnewFile->setShortcut(QKeySequence::AddTab);
     connect(AnewFile, &QAction::triggered, this, &Editor::newF);
     file->addAction(AnewFile);
 
     AopenFile = new QAction(QPixmap(":/icons/icons8-opened-folder-64.png"),
                             "&Open File", this);
-    AopenFile->setShortcut(tr("Ctrl+O"));
+    AopenFile->setShortcut(QKeySequence::Open);
     connect(AopenFile, &QAction::triggered, this, &Editor::open);
     file->addAction(AopenFile);
 
-    newWindow = new QAction("New Window");
+    newWindow = new QAction(QPixmap(":/icons/icons8-new-window-64.png"), "New Window", this);
+    newWindow->setShortcut(QKeySequence::New);
     file->addAction(newWindow);
     connect(newWindow, &QAction::triggered, this, [=](){
         emit newWindowRequest();
@@ -163,75 +168,81 @@ void Editor::initFileMenuActions()
     file->addSeparator();
     file->addAction(AaddProjectFolder);
     connect(AaddProjectFolder, &QAction::triggered, this, [=](){
-       workingDirWidget->addprojectFolderRequested();
+        workingDirWidget->addprojectFolderRequested();
     });
 
     AsaveFile = new QAction(QPixmap(":/icons/icons8-save-64.png"),
                             "Save File", this);
-    AsaveFile->setShortcut(tr("Ctrl+S"));
+    AsaveFile->setShortcut(QKeySequence::Save);
     connect(AsaveFile, &QAction::triggered, this, &Editor::save);
     file->addSeparator();
     file->addAction(AsaveFile);
 
     AsaveFileAs = new QAction(QPixmap(":/icons/icons8-save-as-64.png"),
                               "Save File As", this);
-    AsaveFileAs->setShortcut(tr("Ctrl+Shift+S"));
+    AsaveFileAs->setShortcut(QKeySequence::SaveAs);
     connect(AsaveFileAs, &QAction::triggered, this, &Editor::saveAs);
     file->addAction(AsaveFileAs);
 
     Aquit = new QAction(QPixmap(":/icons/icons8-exit-64.png"), "Quit",
                         this);
-    Aquit->setShortcut(tr("Ctrl+Q"));
+    Aquit->setShortcut(QKeySequence::Quit);
     connect(Aquit, &QAction::triggered, this, &Editor::quit);
     file->addSeparator();
     file->addAction(Aquit);
 }
 
+/**
+ * @brief Editor::initEditMenuActions
+ */
 void Editor::initEditMenuActions()
 {
     Acut = new QAction(QPixmap(":/icons/icons8-cut-64.png"), "Cut", this);
-    Acut->setShortcut(tr("Ctrl+X"));
+    Acut->setShortcut(QKeySequence::Cut);
     connect(Acut, &QAction::triggered, this, &Editor::cut);
     edit->addAction(Acut);
 
     Acopy = new QAction(QPixmap(":/icons/icons8-copy-64.png"), "Copy", this);
-    Acopy->setShortcut(tr("Ctrl+C"));
+    Acopy->setShortcut(QKeySequence::Copy);
     connect(Acopy, &QAction::triggered, this, &Editor::copy);
     edit->addAction(Acopy);
 
     Apaste = new QAction(QPixmap(":/icons/icons8-paste-64.png"), "Paste", this);
-    Apaste->setShortcut(tr("Ctrl+P"));
+    Apaste->setShortcut(QKeySequence::Paste);
     connect(Apaste, &QAction::triggered, this, &Editor::paste);
     edit->addAction(Apaste);
 
     AselectAll = new QAction(QPixmap(":/icons/icons8-select-all-64.png"), "Select &All", this);
-    AselectAll->setShortcut(tr("Ctrl+A"));
+    AselectAll->setShortcut(QKeySequence::SelectAll);
     connect(AselectAll, &QAction::triggered, this, &Editor::selectAll);
     edit->addSeparator();
     edit->addAction(AselectAll);
 
     Aundo = new QAction(QPixmap(":/icons/icons8-undo-64.png"), "Undo", this);
-    Aundo->setShortcut(tr("Ctrl+Z"));
+    Aundo->setShortcut(QKeySequence::Undo);
     connect(Aundo, &QAction::triggered, this, &Editor::undo);
     edit->addSeparator();
     edit->addAction(Aundo);
 
 
     Aredo = new QAction(QPixmap(":/icons/icons8-redo-64.png"), "Redo", this);
-    Aredo->setShortcut(tr("Ctrl+R"));
+    Aredo->setShortcut(QKeySequence::Redo);
     connect(Aredo, &QAction::triggered, this, &Editor::redo);
     edit->addAction(Aredo);
 }
 
+/**
+ * @brief Editor::initViewMenuActions
+ */
 void Editor::initViewMenuActions()
 {
     AincreaseFontSize = new QAction(QPixmap(":/icons/icons8-zoom-in-64.png"), "Zoom &in", this);
-    AincreaseFontSize->setShortcut(tr("Ctrl++"));
+    AincreaseFontSize->setShortcut(QKeySequence::ZoomIn);
     connect(AincreaseFontSize, &QAction::triggered, this, &Editor::increaseFontSize);
     view->addAction(AincreaseFontSize);
 
     AdecreaseFontSize = new QAction(QPixmap(":/icons/icons8-zoom-out-64.png"), "Zoom &out", this);
-    AdecreaseFontSize->setShortcut(tr("Ctrl+-"));
+    AdecreaseFontSize->setShortcut(QKeySequence::ZoomOut);
     connect(AdecreaseFontSize, &QAction::triggered, this, &Editor::decreaseFontSize);
     view->addAction(AdecreaseFontSize);
 
@@ -242,22 +253,25 @@ void Editor::initViewMenuActions()
 
     AhideStatusBar = new QAction(QPixmap(":/icons/icons8-unchecked-checkbox-64.png"),
                                  "Hide Status Bar", this);
-    AhideStatusBar->setShortcut(tr("Alt+S"));
+    AhideStatusBar->setShortcut(tr("Alt+Shift+S"));
     AhideStatusBar->setCheckable(true);
     AhideStatusBar->setChecked(false);
     connect(AhideStatusBar, &QAction::toggled, this, &Editor::hideStatusBar);
-        view->addSeparator();
+    view->addSeparator();
     view->addAction(AhideStatusBar);
 
     AhideToolBar = new QAction(QPixmap(":/icons/icons8-unchecked-checkbox-64.png"),
                                "Hide Tool Bar", this);
-    AhideToolBar->setShortcut(tr("Alt+T"));
+    AhideToolBar->setShortcut(tr("Alt+Shift+T"));
     AhideToolBar->setCheckable(true);
     AhideToolBar->setChecked(false);
     connect(AhideToolBar, &QAction::toggled, this, &Editor::hideToolBar);
     view->addAction(AhideToolBar);
 }
 
+/**
+ * @brief Editor::initPreferencesMenuActions
+ */
 void Editor::initPreferencesMenuActions()
 {
     AautoSave = new QAction(QPixmap(":/icons/icons8-unchecked-checkbox-64.png"),
@@ -268,7 +282,7 @@ void Editor::initPreferencesMenuActions()
     preferences->addAction(AautoSave);
 
     AsetFont = new QAction(QPixmap(":/icons/icons8-choose-font-48.png"), "Choose font", this);
-    AsetFont->setShortcut(tr("Ctrl+F"));
+    AsetFont->setShortcut(tr("Alt+Shift+F"));
     connect(AsetFont, &QAction::triggered, this, &Editor::font);
     preferences->addAction(AsetFont);
 
@@ -278,6 +292,9 @@ void Editor::initPreferencesMenuActions()
     preferences->addAction(AeditSettings);
 }
 
+/**
+ * @brief Editor::initHelpMenuActions
+ */
 void Editor::initHelpMenuActions()
 {
     AviewDocumentation = new QAction("Documentation");
@@ -285,6 +302,9 @@ void Editor::initHelpMenuActions()
     connect(AviewDocumentation, &QAction::triggered, this, &Editor::viewDocumentation);
 }
 
+/**
+ * @brief Editor::initActions
+ */
 void Editor::initActions()
 {
     initFileMenuActions();
@@ -294,6 +314,9 @@ void Editor::initActions()
     initHelpMenuActions();
 }
 
+/**
+ * @brief Editor::initToolBar
+ */
 void Editor::initToolBar()
 {
     toolbar = addToolBar("Main Toolbar");
@@ -318,6 +341,9 @@ void Editor::initToolBar()
     toolbar->addAction(Aquit);
 }
 
+/**
+ * @brief Editor::initStatusBar
+ */
 void Editor::initStatusBar()
 {
     statusBar()->setObjectName("status-bar");
@@ -327,6 +353,9 @@ void Editor::initStatusBar()
     statusBar()->addPermanentWidget(statusBarText);
 }
 
+/**
+ * @brief Editor::initWorkingDir
+ */
 void Editor::initWorkingDir()
 {
     workingDirDockWidget = new QDockWidget;
@@ -336,14 +365,46 @@ void Editor::initWorkingDir()
     workingDirWidget->attachModalsTo(this);
     workingDirDockWidget->setWidget(workingDirWidget);
     this->addDockWidget(Qt::LeftDockWidgetArea, workingDirDockWidget);
-//    workingDirDockWidget->hide();
+    //    workingDirDockWidget->hide();
+    connectToWorkingDirSignals();
 }
 
-void Editor::openPlainTextFile(QString filePath)
+/**
+ * @brief Editor::connectToWorkingDirSignals
+ */
+void Editor::connectToWorkingDirSignals() {
+    connect(workingDirWidget, &WorkingDirWidget::openFile,
+            this, &Editor::openFileFromProjectWidget);
+}
+
+/**
+ * @brief Editor::openFileFromProjectWidget
+ * @param filePath
+ */
+void Editor::openFileFromProjectWidget(QString filePath)
 {
-    Q_UNUSED(filePath)
+    QFile file{filePath};
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        QMessageBox::warning(this, "Warning", "Cannot open file");
+        return;
+    }
+    QTextStream in{&file};
+    editAreas.append(new CodeEdit);
+    files.append(filePath);
+    informativeText.append("");
+    int i = editAreas.size() - 1;
+    tabs->addTab(editAreas[i], QPixmap(":/icons/icons8-file-64.png"),
+                 QFileInfo(filePath).fileName());
+    tabs->setCurrentWidget(editAreas[i]);
+    editAreas[i]->setPlainText(in.readAll());
+    tabs->setTabText(i, QFileInfo(filePath).fileName());
+    files[i] = filePath;
 }
 
+/**
+ * @brief Editor::newF
+ */
 void Editor::newF()
 {
     Editor::untitled_files_nb++;
@@ -355,6 +416,9 @@ void Editor::newF()
                  QString("Untitled %1").arg(untitled_files_nb));
 }
 
+/**
+ * @brief Editor::open
+ */
 void Editor::open()
 {
     int index{tabs->currentIndex()};
@@ -374,6 +438,9 @@ void Editor::open()
     files[index] = fileName;
 }
 
+/**
+ * @brief Editor::save
+ */
 void Editor::save()
 {
     int index{tabs->currentIndex()};
@@ -403,6 +470,9 @@ void Editor::save()
     //    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
 }
 
+/**
+ * @brief Editor::saveAs
+ */
 void Editor::saveAs()
 {
     int index{tabs->currentIndex()};
@@ -424,11 +494,17 @@ void Editor::saveAs()
     //    statusBarText->setText("Last Saved " + QDateTime::currentDateTime().toString("hh:mm:ss.zzz"));
 }
 
+/**
+ * @brief Editor::quit
+ */
 void Editor::quit()
 {
     this->close();
 }
 
+/**
+ * @brief Editor::cut
+ */
 void Editor::cut()
 {
     if (tabs->currentWidget() != settings)
@@ -439,6 +515,9 @@ void Editor::cut()
     }
 }
 
+/**
+ * @brief Editor::copy
+ */
 void Editor::copy()
 {
     if (tabs->currentWidget() != settings)
@@ -449,6 +528,9 @@ void Editor::copy()
     }
 }
 
+/**
+ * @brief Editor::paste
+ */
 void Editor::paste()
 {
     if (tabs->currentWidget() != settings)
@@ -459,6 +541,9 @@ void Editor::paste()
     }
 }
 
+/**
+ * @brief Editor::selectAll
+ */
 void Editor::selectAll()
 {
     if (tabs->currentWidget() != settings)
@@ -469,6 +554,9 @@ void Editor::selectAll()
     }
 }
 
+/**
+ * @brief Editor::undo
+ */
 void Editor::undo()
 {
     if (tabs->currentWidget() != settings)
@@ -479,6 +567,9 @@ void Editor::undo()
     }
 }
 
+/**
+ * @brief Editor::redo
+ */
 void Editor::redo()
 {
     if (tabs->currentWidget() != settings)
@@ -489,43 +580,58 @@ void Editor::redo()
     }
 }
 
+/**
+ * @brief Editor::font
+ */
 void Editor::font()
 {
     bool fontSelected;
     QFont font = QFontDialog::getFont(&fontSelected, this);
     if (fontSelected)
-        for (auto *editArea: editAreas)
+        for (auto *editArea: qAsConst(editAreas))
             editArea->setFont(font);
 }
 
+/**
+ * @brief Editor::increaseFontSize
+ */
 void Editor::increaseFontSize()
 {
     int size{fontSize + (10 * Editor::DEFAULT_FONT_SIZE / 100)};
     if (size < Editor::MAX_FONT_SIZE)
     {
         fontSize = size;
-        for (auto *editArea: editAreas)
+        for (auto *editArea: qAsConst(editAreas))
             editArea->setStyleSheet(QString("font-size: %1px").arg(size));
     }
 }
 
+/**
+ * @brief Editor::decreaseFontSize
+ */
 void Editor::decreaseFontSize()
 {
     int size{fontSize - (10 * Editor::DEFAULT_FONT_SIZE / 100)};
     if (size > Editor::MIN_FONT_SIZE)
     {
         fontSize = size;
-        for (auto *editArea: editAreas)
+        for (auto *editArea: qAsConst(editAreas))
             editArea->setStyleSheet(QString("font-size: %1px").arg(size));
     }
 }
 
+/**
+ * @brief Editor::originalFontSize
+ */
 void Editor::originalFontSize()
 {
-    for (auto *editArea: editAreas)
+    for (auto *editArea: qAsConst(editAreas))
         editArea->setStyleSheet(QString("font-size: %1px").arg(Editor::DEFAULT_FONT_SIZE));
 }
 
+/**
+ * @brief Editor::hideStatusBar
+ */
 void Editor::hideStatusBar()
 {
     if (statusBar()->isVisible())
@@ -535,6 +641,9 @@ void Editor::hideStatusBar()
     emit checkboxToggled(AhideStatusBar);
 }
 
+/**
+ * @brief Editor::hideToolBar
+ */
 void Editor::hideToolBar()
 {
     if (toolbar->isVisible())
@@ -544,6 +653,9 @@ void Editor::hideToolBar()
     emit checkboxToggled(AhideToolBar);
 }
 
+/**
+ * @brief Editor::autoSave
+ */
 void Editor::autoSave()
 {
     static int id;
@@ -565,11 +677,17 @@ void Editor::autoSave()
     }
 }
 
+/**
+ * @brief Editor::closeTab
+ */
 void Editor::closeTab()
 {
 
 }
 
+/**
+ * @brief Editor::openSettingsTab
+ */
 void Editor::openSettingsTab()
 {
     if (!isSettingsTabOpened)
@@ -583,11 +701,18 @@ void Editor::openSettingsTab()
         tabs->setCurrentWidget(settings);
 }
 
+/**
+ * @brief Editor::viewDocumentation
+ */
 void Editor::viewDocumentation()
 {
     QMessageBox::information(this, "Help", "No help");
 }
 
+/**
+ * @brief Editor::toggleCheckbox
+ * @param action
+ */
 void Editor::toggleCheckbox(QAction *action)
 {
     if (action->isCheckable())
@@ -605,6 +730,10 @@ void Editor::toggleCheckbox(QAction *action)
     }
 }
 
+/**
+ * @brief Editor::timerEvent
+ * @param event
+ */
 void Editor::timerEvent(QTimerEvent *event)
 {
     Q_UNUSED(event);

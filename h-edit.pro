@@ -35,6 +35,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 DISTFILES += \
     .gitignore \
     README \
+    README.md \
     icons/icons8-checked-64.png \
     icons/icons8-choose-font-48.png \
     icons/icons8-copy-64.png \

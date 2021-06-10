@@ -18,7 +18,7 @@ QList<QString> SettingsModel::themes()
     QDir themeDirectory{"./themes"};
     themeDirectory.setFilter(QDir::Files);
     QFileInfoList files = themeDirectory.entryInfoList();
-    for (auto file: files)
+    for (const auto &file: files)
     {
         if (file.suffix() == "qss")
             themes.append(file.fileName());
