@@ -112,7 +112,7 @@ void Editor::initTabWidget()
     editAreas.append(new CodeEdit);
     informativeText.append("");
     files.append("");
-    tabs->addTab(editAreas[0], QPixmap("icons/icons8-file-64.png"),
+    tabs->addTab(editAreas[0], QPixmap(":/icons/icons8-file-64.png"),
             QString("Untitled %1").arg(untitled_files_nb));
     connect(tabs, static_cast<void(QTabWidget::*)(int)>(&QTabWidget::tabCloseRequested), [this](int i){
         if (this->tabs->widget(i) == this->settings)
@@ -141,13 +141,13 @@ void Editor::initMenuBar()
 
 void Editor::initFileMenuActions()
 {
-    AnewFile = new QAction(QPixmap("icons/icons8-file-64.png"),
+    AnewFile = new QAction(QPixmap(":/icons/icons8-file-64.png"),
                            "&New File", this);
     AnewFile->setShortcut(tr("Ctrl+N"));
     connect(AnewFile, &QAction::triggered, this, &Editor::newF);
     file->addAction(AnewFile);
 
-    AopenFile = new QAction(QPixmap("icons/icons8-opened-folder-64.png"),
+    AopenFile = new QAction(QPixmap(":/icons/icons8-opened-folder-64.png"),
                             "&Open File", this);
     AopenFile->setShortcut(tr("Ctrl+O"));
     connect(AopenFile, &QAction::triggered, this, &Editor::open);
@@ -166,20 +166,20 @@ void Editor::initFileMenuActions()
        workingDirWidget->addprojectFolderRequested();
     });
 
-    AsaveFile = new QAction(QPixmap("icons/icons8-save-64.png"),
+    AsaveFile = new QAction(QPixmap(":/icons/icons8-save-64.png"),
                             "Save File", this);
     AsaveFile->setShortcut(tr("Ctrl+S"));
     connect(AsaveFile, &QAction::triggered, this, &Editor::save);
     file->addSeparator();
     file->addAction(AsaveFile);
 
-    AsaveFileAs = new QAction(QPixmap("icons/icons8-save-as-64.png"),
+    AsaveFileAs = new QAction(QPixmap(":/icons/icons8-save-as-64.png"),
                               "Save File As", this);
     AsaveFileAs->setShortcut(tr("Ctrl+Shift+S"));
     connect(AsaveFileAs, &QAction::triggered, this, &Editor::saveAs);
     file->addAction(AsaveFileAs);
 
-    Aquit = new QAction(QPixmap("icons/icons8-exit-64.png"), "Quit",
+    Aquit = new QAction(QPixmap(":/icons/icons8-exit-64.png"), "Quit",
                         this);
     Aquit->setShortcut(tr("Ctrl+Q"));
     connect(Aquit, &QAction::triggered, this, &Editor::quit);
@@ -189,35 +189,35 @@ void Editor::initFileMenuActions()
 
 void Editor::initEditMenuActions()
 {
-    Acut = new QAction(QPixmap("icons/icons8-cut-64.png"), "Cut", this);
+    Acut = new QAction(QPixmap(":/icons/icons8-cut-64.png"), "Cut", this);
     Acut->setShortcut(tr("Ctrl+X"));
     connect(Acut, &QAction::triggered, this, &Editor::cut);
     edit->addAction(Acut);
 
-    Acopy = new QAction(QPixmap("icons/icons8-copy-64.png"), "Copy", this);
+    Acopy = new QAction(QPixmap(":/icons/icons8-copy-64.png"), "Copy", this);
     Acopy->setShortcut(tr("Ctrl+C"));
     connect(Acopy, &QAction::triggered, this, &Editor::copy);
     edit->addAction(Acopy);
 
-    Apaste = new QAction(QPixmap("icons/icons8-paste-64.png"), "Paste", this);
+    Apaste = new QAction(QPixmap(":/icons/icons8-paste-64.png"), "Paste", this);
     Apaste->setShortcut(tr("Ctrl+P"));
     connect(Apaste, &QAction::triggered, this, &Editor::paste);
     edit->addAction(Apaste);
 
-    AselectAll = new QAction(QPixmap("icons/icons8-select-all-64.png"), "Select &All", this);
+    AselectAll = new QAction(QPixmap(":/icons/icons8-select-all-64.png"), "Select &All", this);
     AselectAll->setShortcut(tr("Ctrl+A"));
     connect(AselectAll, &QAction::triggered, this, &Editor::selectAll);
     edit->addSeparator();
     edit->addAction(AselectAll);
 
-    Aundo = new QAction(QPixmap("icons/icons8-undo-64.png"), "Undo", this);
+    Aundo = new QAction(QPixmap(":/icons/icons8-undo-64.png"), "Undo", this);
     Aundo->setShortcut(tr("Ctrl+Z"));
     connect(Aundo, &QAction::triggered, this, &Editor::undo);
     edit->addSeparator();
     edit->addAction(Aundo);
 
 
-    Aredo = new QAction(QPixmap("icons/icons8-redo-64.png"), "Redo", this);
+    Aredo = new QAction(QPixmap(":/icons/icons8-redo-64.png"), "Redo", this);
     Aredo->setShortcut(tr("Ctrl+R"));
     connect(Aredo, &QAction::triggered, this, &Editor::redo);
     edit->addAction(Aredo);
@@ -225,22 +225,22 @@ void Editor::initEditMenuActions()
 
 void Editor::initViewMenuActions()
 {
-    AincreaseFontSize = new QAction(QPixmap("icons/icons8-zoom-in-64.png"), "Zoom &in", this);
+    AincreaseFontSize = new QAction(QPixmap(":/icons/icons8-zoom-in-64.png"), "Zoom &in", this);
     AincreaseFontSize->setShortcut(tr("Ctrl++"));
     connect(AincreaseFontSize, &QAction::triggered, this, &Editor::increaseFontSize);
     view->addAction(AincreaseFontSize);
 
-    AdecreaseFontSize = new QAction(QPixmap("icons/icons8-zoom-out-64.png"), "Zoom &out", this);
+    AdecreaseFontSize = new QAction(QPixmap(":/icons/icons8-zoom-out-64.png"), "Zoom &out", this);
     AdecreaseFontSize->setShortcut(tr("Ctrl+-"));
     connect(AdecreaseFontSize, &QAction::triggered, this, &Editor::decreaseFontSize);
     view->addAction(AdecreaseFontSize);
 
-    AoriginalFontSize = new QAction(QPixmap("icons/icons8-original-size-64.png"), "Default &Size", this);
+    AoriginalFontSize = new QAction(QPixmap(":/icons/icons8-original-size-64.png"), "Default &Size", this);
     AoriginalFontSize->setShortcut(tr("Ctrl+0"));
     connect(AoriginalFontSize, &QAction::triggered, this, &Editor::originalFontSize);
     view->addAction(AoriginalFontSize);
 
-    AhideStatusBar = new QAction(QPixmap("icons/icons8-unchecked-checkbox-64.png"),
+    AhideStatusBar = new QAction(QPixmap(":/icons/icons8-unchecked-checkbox-64.png"),
                                  "Hide Status Bar", this);
     AhideStatusBar->setShortcut(tr("Alt+S"));
     AhideStatusBar->setCheckable(true);
@@ -249,7 +249,7 @@ void Editor::initViewMenuActions()
         view->addSeparator();
     view->addAction(AhideStatusBar);
 
-    AhideToolBar = new QAction(QPixmap("icons/icons8-unchecked-checkbox-64.png"),
+    AhideToolBar = new QAction(QPixmap(":/icons/icons8-unchecked-checkbox-64.png"),
                                "Hide Tool Bar", this);
     AhideToolBar->setShortcut(tr("Alt+T"));
     AhideToolBar->setCheckable(true);
@@ -260,19 +260,19 @@ void Editor::initViewMenuActions()
 
 void Editor::initPreferencesMenuActions()
 {
-    AautoSave = new QAction(QPixmap("icons/icons8-unchecked-checkbox-64.png"),
+    AautoSave = new QAction(QPixmap(":/icons/icons8-unchecked-checkbox-64.png"),
                             "Auto-save current file", this);
     AautoSave->setCheckable(true);
     AautoSave->setChecked(false);
     connect(AautoSave, &QAction::triggered, this, &Editor::autoSave);
     preferences->addAction(AautoSave);
 
-    AsetFont = new QAction(QPixmap("icons/icons8-choose-font-48.png"), "Choose font", this);
+    AsetFont = new QAction(QPixmap(":/icons/icons8-choose-font-48.png"), "Choose font", this);
     AsetFont->setShortcut(tr("Ctrl+F"));
     connect(AsetFont, &QAction::triggered, this, &Editor::font);
     preferences->addAction(AsetFont);
 
-    AeditSettings = new QAction(QPixmap("icons/icons8-settings-64.png"), "&Settings", this);
+    AeditSettings = new QAction(QPixmap(":/icons/icons8-settings-64.png"), "&Settings", this);
     AeditSettings->setShortcut(tr("Ctrl+P"));
     connect(AeditSettings, &QAction::triggered, this, &Editor::openSettingsTab);
     preferences->addAction(AeditSettings);
@@ -341,7 +341,7 @@ void Editor::initWorkingDir()
 
 void Editor::openPlainTextFile(QString filePath)
 {
-
+    Q_UNUSED(filePath)
 }
 
 void Editor::newF()
@@ -351,7 +351,7 @@ void Editor::newF()
     files.append("");
     informativeText.append("");
     int i = editAreas.size() - 1;
-    tabs->addTab(editAreas[i], QPixmap("icons/icons8-file-64.png"),
+    tabs->addTab(editAreas[i], QPixmap(":/icons/icons8-file-64.png"),
                  QString("Untitled %1").arg(untitled_files_nb));
 }
 
@@ -595,12 +595,12 @@ void Editor::toggleCheckbox(QAction *action)
         if(action->isChecked())
         {
             action->setChecked(true);
-            action->setIcon(QPixmap("icons/icons8-checked-64.png"));
+            action->setIcon(QPixmap(":/icons/icons8-checked-64.png"));
         }
         else
         {
             action->setChecked(false);
-            action->setIcon(QPixmap("icons/icons8-unchecked-checkbox-64.png"));
+            action->setIcon(QPixmap(":/icons/icons8-unchecked-checkbox-64.png"));
         }
     }
 }

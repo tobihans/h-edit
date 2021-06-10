@@ -53,3 +53,6 @@ DISTFILES += \
     icons/icons8-undo-64.png \
     icons/icons8-zoom-in-64.png \
     icons/icons8-zoom-out-64.png
+
+RESOURCES += \
+    resources.qrc
